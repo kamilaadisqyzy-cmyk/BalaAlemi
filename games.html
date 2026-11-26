@@ -969,41 +969,87 @@ function gSticker() {
 }
 
 /* =========================== НАҒЫЗ 3D =========================== */
+/* ---- 3D қозғалтқыш: жарық, материал, орта, безендіру ---- */
+const LQ = (() => { try { return /[?&]lq/.test(location.search) || (navigator.hardwareConcurrency || 4) <= 2; } catch (e) { return false; } })();
+function lin(T, c) { return new T.Color(c).convertSRGBToLinear(); }
+function rbox(T, w, h, d, r) { const m = Math.min(w, h, d); r = r == null ? m * .16 : r; r = Math.min(r, m / 2 - .002); if (m < .06 || r < .012) return new T.BoxGeometry(w, h, d);
+  const e = .00001, rr = r - e, W = w - 2 * r, H = h - 2 * r, sh = new T.Shape();
+  sh.absarc(e, e, e, -Math.PI / 2, -Math.PI, true); sh.absarc(e, H, e, Math.PI, Math.PI / 2, true); sh.absarc(W, H, e, Math.PI / 2, 0, true); sh.absarc(W, e, e, 0, -Math.PI / 2, true);
+  const g = new T.ExtrudeGeometry(sh, { depth: Math.max(.0001, d - 2 * r), bevelEnabled: true, bevelSegments: 4, steps: 1, bevelSize: rr, bevelThickness: r, curveSegments: 4 }); g.center(); g.computeVertexNormals(); return g; }
+function grassTex(T) { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.fillStyle = '#7fcc5e'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 40; i++) { const px = Math.random() * 256, py = Math.random() * 256, r = 20 + Math.random() * 40; for (const [dx, dy] of [[0, 0], [256, 0], [-256, 0], [0, 256], [0, -256]]) { const g = x.createRadialGradient(px + dx, py + dy, 0, px + dx, py + dy, r); g.addColorStop(0, Math.random() < .5 ? 'rgba(150,215,110,.35)' : 'rgba(90,170,70,.3)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); } }
+  for (let i = 0; i < 1400; i++) { x.fillStyle = Math.random() < .5 ? 'rgba(50,125,45,.4)' : 'rgba(175,230,135,.35)'; const px = Math.random() * 256, py = Math.random() * 256; x.fillRect(px, py, 1.5, 3 + Math.random() * 3); }
+  const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(4, 4); if ('encoding' in t) t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t; }
+let GRASS = null;
+function envMap(T, renderer) { const sc = new T.Scene(); const geo = new T.SphereGeometry(10, 32, 16); const cols = []; const p = geo.attributes.position; const top = new T.Color(0xbfe0ff), mid = new T.Color(0xffffff), bot = new T.Color(0x8fcf70);
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i) / 10; const c = y > 0 ? mid.clone().lerp(top, y) : mid.clone().lerp(bot, -y); cols.push(c.r, c.g, c.b); } geo.setAttribute('color', new T.Float32BufferAttribute(cols, 3));
+  sc.add(new T.Mesh(geo, new T.MeshBasicMaterial({ vertexColors: true, side: T.BackSide })));
+  const lamp = new T.Mesh(new T.SphereGeometry(1.4, 16, 8), new T.MeshBasicMaterial({ color: 0xffffff })); lamp.position.set(5, 7, 4); lamp.material.color.multiplyScalar(4); sc.add(lamp);
+  const pm = new T.PMREMGenerator(renderer); const tex = pm.fromScene(sc, .02).texture; pm.dispose(); return tex; }
+function decorate(S, R) { const T = S.T, g = new T.Group(); S.scene.add(g); const trunkM = S.mat(0x8d5a34), leafC = [0x2e9e4f, 0x3fb55f, 0x5cc46a], flowerC = [0xff5a7a, 0xffd23f, 0xffffff, 0xb26bff];
+  for (let i = 0; i < 14; i++) { const a = Math.PI * (1.08 + i / 13 * .84) + rnd0(-.05, .05); const rr = R + .6 + Math.random() * 3.2; const x = Math.cos(a) * rr, z = Math.sin(a) * rr; const t = new T.Group(); t.position.set(x, 0, z); const s = .8 + Math.random() * .7; t.scale.setScalar(s);
+    const tr = new T.Mesh(new T.CylinderGeometry(.1, .14, .7, 10), trunkM); tr.position.y = .35; tr.castShadow = true; t.add(tr);
+    if (i % 3) { [0, 1].forEach(k => { const c = S.mesh(new T.ConeGeometry(.55 - k * .15, .8, 18), leafC[(i + k) % 3], [0, .9 + k * .45, 0]); t.add(c); }); } else { t.add(S.mesh(new T.SphereGeometry(.55, 20, 14), leafC[i % 3], [0, 1.05, 0])); }
+    g.add(t); }
+  for (let i = 0; i < 26; i++) { const a = Math.random() * Math.PI * 2, rr = R - .25 + Math.random() * 1.4; const f = new T.Group(); f.position.set(Math.cos(a) * rr, 0, Math.sin(a) * rr); if (f.position.z > R * .6) continue;
+    const st = new T.Mesh(new T.CylinderGeometry(.015, .015, .22, 5), S.mat(0x3c9a3c)); st.position.y = .11; f.add(st); f.add(S.mesh(new T.SphereGeometry(.07, 10, 8), flowerC[i % 4], [0, .24, 0])); g.add(f); }
+  const rim = new T.Mesh(new T.TorusGeometry(R, .09, 10, 90), S.mat(0x5fae4a)); rim.rotation.x = Math.PI / 2; rim.position.y = .01; rim.receiveShadow = true; g.add(rim);
+  clouds(S, [[-6, 6.5, -9], [3, 7.5, -11], [8, 6, -8]]); return g; }
+function clouds(S, list) { const T = S.T, m = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1, emissive: 0xffffff, emissiveIntensity: .25 });
+  list.forEach(([x, y, z], i) => { const c = new T.Group(); [[0, 0, 0, .9], [.9, -.1, .1, .7], [-.9, -.15, 0, .65], [.3, .45, 0, .7]].forEach(([a, b, d, r]) => { const s = new T.Mesh(new T.SphereGeometry(r, 18, 12), m); s.position.set(a, b, d); c.add(s); }); c.position.set(x, y, z); c.scale.set(1.3, .9, .9); S.scene.add(c); const x0 = x, ph = i * 2;
+    S.anim(() => { c.position.x = x0 + Math.sin(performance.now() / 6000 + ph) * 1.2; }); }); }
+function rnd0(a, b) { return a + Math.random() * (b - a); }
 function make3D(host, opts = {}) {
   if (!window.THREE) { host.append(el('div', { class: 'nogl' }, '3D бұл құрылғыда ашылмады 😔')); return null; }
   const T = THREE; let renderer;
-  try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { host.append(el('div', { class: 'nogl' }, '3D бұл құрылғыда ашылмады 😔')); return null; }
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+  try { renderer = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch (e) { host.append(el('div', { class: 'nogl' }, '3D бұл құрылғыда ашылмады 😔')); return null; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, LQ ? 1 : 2)); renderer.shadowMap.enabled = !LQ; renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
   host.append(renderer.domElement);
-  const scene = new T.Scene(); const cam = new T.PerspectiveCamera(opts.fov || 40, 1, .1, 100); cam.position.set(...(opts.cam || [0, 3.2, 7.5])); cam.lookAt(...(opts.look || [0, 1, 0]));
-  scene.add(new T.HemisphereLight(0xffffff, 0xb7d7a0, .75));
-  const sun = new T.DirectionalLight(0xffffff, .85); sun.position.set(4, 8, 5); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6 }); scene.add(sun);
-  const ground = new T.Mesh(new T.CircleGeometry(opts.groundR || 5, 64), new T.MeshStandardMaterial({ color: opts.groundC || 0x8fd36b, roughness: .9 }));
+  const scene = new T.Scene(); if (!LQ) scene.environment = envMap(T, renderer);
+  const cam = new T.PerspectiveCamera(opts.fov || 40, 1, .1, 120); cam.position.set(...(opts.cam || [0, 3.2, 7.5])); cam.lookAt(...(opts.look || [0, 1, 0]));
+  scene.add(new T.HemisphereLight(lin(T, 0xeaf4ff), lin(T, 0x9ccf7c), .55));
+  const sun = new T.DirectionalLight(lin(T, 0xfff3dd), 1.15); sun.position.set(4, 9, 6); sun.castShadow = !LQ; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02; Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 30 }); scene.add(sun);
+  const fill = new T.DirectionalLight(lin(T, 0xcfe4ff), .35); fill.position.set(-6, 4, -3); scene.add(fill);
+  if (!GRASS) GRASS = grassTex(T);
+  const R = opts.groundR || 5;
+  const ground = new T.Mesh(new T.CircleGeometry(R, 96), new T.MeshStandardMaterial({ color: lin(T, opts.groundC || 0xffffff), map: GRASS, roughness: .95 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; if (opts.ground !== false) scene.add(ground);
   const world = new T.Group(); scene.add(world);
   const ray = new T.Raycaster(), v2 = new T.Vector2(); let pick = [], onTap = null, anims = [];
-  const camBase = cam.position.clone(), lookV = new T.Vector3(...(opts.look || [0, 1, 0]));
-  const size = () => { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); cam.aspect = w / h; const k = Math.max(1, 1.75 / cam.aspect); cam.position.copy(camBase).sub(lookV).multiplyScalar(k).add(lookV); cam.lookAt(lookV); cam.updateProjectionMatrix(); };
+  const camBase = cam.position.clone(), lookV = new T.Vector3(...(opts.look || [0, 1, 0])); let intro = 0; const introT = performance.now();
+  const placeCam = () => { const k = Math.max(1, 1.75 / cam.aspect) * (1 + .35 * (1 - ease0(intro))); cam.position.copy(camBase).sub(lookV).multiplyScalar(k).add(lookV); cam.lookAt(lookV); };
+  const size = () => { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); cam.aspect = w / h; placeCam(); cam.updateProjectionMatrix(); };
   const ro = new ResizeObserver(size); ro.observe(host); size();
-  let down = null, rotY = opts.rotY || 0, rotX = 0;
+  let down = null, rotY = opts.rotY || 0, rotX = 0, hovered = null;
+  const hitAt = e => { const r = renderer.domElement.getBoundingClientRect(); v2.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(v2, cam); return ray.intersectObjects(pick, true)[0]; };
+  const glow = (g, on) => { if (!g) return; g.traverse(o => { if (o.isMesh && o.material && o.material.emissive) { o.material.emissive.setHex(on ? 0x3a3000 : 0x000000); } }); };
   host.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, ry: rotY, rx: rotX, moved: false }; try { host.setPointerCapture(e.pointerId); } catch (x) {} });
-  host.addEventListener('pointermove', e => { if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.hypot(dx, dy) > 6) down.moved = true; if (down.moved && opts.rotate !== false) { rotY = down.ry + dx * .01; rotX = Math.max(-.35, Math.min(.35, down.rx + dy * .005)); } });
-  host.addEventListener('pointerup', e => { if (down && !down.moved && onTap) { const r = renderer.domElement.getBoundingClientRect(); v2.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(v2, cam); const hit = ray.intersectObjects(pick, true)[0]; onTap(hit ? hit.object : null, hit); } down = null; });
+  host.addEventListener('pointermove', e => { if (!down) { if (e.pointerType === 'mouse' && pick.length && onTap) { const h = hitAt(e); let g = h ? h.object : null; while (g && g.parent && g.parent !== world && !(g.userData && g.userData.id)) g = g.parent; if (g && g.userData && g.userData.id === 'base') g = null; if (g !== hovered) { glow(hovered, false); hovered = g; glow(g, true); host.style.cursor = g ? 'pointer' : ''; } } return; }
+    const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.hypot(dx, dy) > 6) down.moved = true; if (down.moved && opts.rotate !== false) { rotY = down.ry + dx * .01; rotX = Math.max(-.35, Math.min(.35, down.rx + dy * .005)); } });
+  host.addEventListener('pointerleave', () => { glow(hovered, false); hovered = null; });
+  host.addEventListener('pointerup', e => { if (down && !down.moved && onTap) { const hit = hitAt(e); if (hit) ripple(hit.point); onTap(hit ? hit.object : null, hit); } down = null; });
+  const rings = [];
+  function ripple(p) { const m = new T.Mesh(new T.RingGeometry(.12, .2, 32), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .9, depthWrite: false, side: T.DoubleSide })); m.position.copy(p); m.lookAt(cam.position); scene.add(m); const st = performance.now();
+    anims.push(() => { const k = (performance.now() - st) / 450; if (k >= 1) { scene.remove(m); return false; } m.scale.setScalar(1 + k * 3); m.material.opacity = .9 * (1 - k); }); }
   let alive = true, t0 = performance.now();
   (function loop(now) { if (!alive) return; if (!host.isConnected) { alive = false; ro.disconnect(); renderer.dispose(); return; }
-    const t = (now - t0) / 1000; world.rotation.y += (rotY - world.rotation.y) * .15; world.rotation.x += (rotX - world.rotation.x) * .15;
+    const t = (now - t0) / 1000; if (intro < 1) { intro = Math.min(1, (now - introT) / 1100); placeCam(); }
+    world.rotation.y += (rotY - world.rotation.y) * .15; world.rotation.x += (rotX - world.rotation.x) * .15;
     anims = anims.filter(a => a(t) !== false); renderer.render(scene, cam); requestAnimationFrame(loop); })(t0);
-  const mat = c => new T.MeshStandardMaterial({ color: c, roughness: .35, metalness: .05 });
+  const mat = c => LQ ? new T.MeshStandardMaterial({ color: lin(T, c), roughness: .38, metalness: 0 }) : new T.MeshPhysicalMaterial({ color: lin(T, c), roughness: .3, metalness: 0, clearcoat: .7, clearcoatRoughness: .22, envMapIntensity: .9 });
   const mesh = (geo, c, pos = [0, 0, 0]) => { const m = new T.Mesh(geo, mat(c)); m.position.set(...pos); m.castShadow = true; m.receiveShadow = true; return m; };
-  const S = { T, scene, cam, world, mesh, mat, setPick: p => pick = p, tap: f => onTap = f, anim: f => anims.push(f), host }; window._s3 = S; return S;
+  const S = { T, scene, cam, world, mesh, mat, setPick: p => pick = p, tap: f => onTap = f, anim: f => anims.push(f), host, lin: c => lin(T, c), grass: (rep = 4) => { const t = GRASS.clone(); t.needsUpdate = true; t.repeat.set(rep, rep); return new T.MeshStandardMaterial({ color: 0xffffff, map: t, roughness: .95 }); } }; window._s3 = S;
+  if (opts.ground !== false && opts.decor !== false) decorate(S, R);
+  return S;
 }
+const ease0 = k => 1 - Math.pow(1 - k, 3);
 const bounce = (S, o, base) => { const st = performance.now(); S.anim(() => { const k = (performance.now() - st) / 600; if (k >= 1) { o.position.y = base; o.scale.setScalar(o.userData.s || 1); return false; } o.position.y = base + Math.sin(k * Math.PI) * .7; o.scale.setScalar((o.userData.s || 1) * (1 + Math.sin(k * Math.PI) * .15)); }); };
 const wiggle = (S, o) => { const st = performance.now(), r0 = o.rotation.z; S.anim(() => { const k = (performance.now() - st) / 500; if (k >= 1) { o.rotation.z = r0; return false; } o.rotation.z = r0 + Math.sin(k * Math.PI * 6) * .25 * (1 - k); }); };
 
 /* --- 3D пішіндерді тап --- */
 const SH3 = [
   { k: 'sphere', l: 'Шар', acc: 'Шарды', g: T => new T.SphereGeometry(.55, 48, 32), y: .55 },
-  { k: 'cube', l: 'Текше', acc: 'Текшені', g: T => new T.BoxGeometry(.95, .95, .95), y: .48 },
+  { k: 'cube', l: 'Текше', acc: 'Текшені', g: T => rbox(T, .95, .95, .95), y: .48 },
   { k: 'cyl', l: 'Цилиндр', acc: 'Цилиндрді', g: T => new T.CylinderGeometry(.45, .45, 1.05, 48), y: .53 },
   { k: 'cone', l: 'Конус', acc: 'Конусты', g: T => new T.ConeGeometry(.55, 1.15, 48), y: .58 },
   { k: 'pyr', l: 'Пирамида', acc: 'Пирамиданы', g: T => new T.ConeGeometry(.72, 1.05, 4), y: .53 },
@@ -1044,11 +1090,11 @@ function g3Tower() {
   const cols = shuffle(C3).slice(0, Math.min(5, L + 1)); const seq = [...Array(L)].map(() => cols[Math.random() * cols.length | 0]);
   const sizes = AGE === 2 ? seq.map((_, i) => 1.15 - i * .12) : seq.map(() => 1);
   const H = .55; const sample = new S.T.Group(); sample.position.set(-1.6, 0, 0); const ped0 = S.mesh(new S.T.CylinderGeometry(.75, .85, .12, 40), 0x9fb3d9, [-1.6, .06, 0]); S.world.add(ped0); sample.position.y = .12; sample.scale.setScalar(.75); S.world.add(sample);
-  seq.forEach((c, i) => { const bx = S.mesh(new S.T.BoxGeometry(sizes[i], H, sizes[i]), c[0], [0, H / 2 + i * H, 0]); sample.add(bx); });
+  seq.forEach((c, i) => { const bx = S.mesh(rbox(S.T, sizes[i], H, sizes[i]), c[0], [0, H / 2 + i * H, 0]); sample.add(bx); });
   const ped = S.mesh(new S.T.CylinderGeometry(.9, 1, .15, 40), 0xf2b632, [1.4, .075, 0]); S.world.add(ped);
   let k = 0;
   cols.forEach(c => { const bt = el('button', { class: 'blk', style: `background:#${c[0].toString(16).padStart(6, '0')}` }, c[1]);
-    bt.onclick = () => { if (k >= L) return; if (c === seq[k]) { const y = .15 + H / 2 + k * H; const bx = S.mesh(new S.T.BoxGeometry(sizes[k], H, sizes[k]), c[0], [1.4, y + 3, 0]); S.world.add(bx); const st = performance.now(); S.anim(() => { const q = Math.min(1, (performance.now() - st) / 450); bx.position.y = y + 3 * (1 - q * q); if (q >= 1) return false; });
+    bt.onclick = () => { if (k >= L) return; if (c === seq[k]) { const y = .15 + H / 2 + k * H; const bx = S.mesh(rbox(S.T, sizes[k], H, sizes[k]), c[0], [1.4, y + 3, 0]); S.world.add(bx); const st = performance.now(); S.anim(() => { const q = Math.min(1, (performance.now() - st) / 450); bx.position.y = y + 3 * (1 - q * q); if (q >= 1) return false; });
         snd('ok'); addScore(); msg(praise() + ' ' + c[1] + ' текше', 'ok'); k++; if (k === L) win('Мұнара дайын! 🏰', () => g3Tower()); }
       else { snd('bad'); shake(bt); msg(tryA() + ' Үлгіге қара: ' + (k + 1) + '-қабат қандай түсті?', 'bad'); } };
     pal.append(bt); });
@@ -1069,15 +1115,15 @@ const MODELS3 = [
     const sh = S.mesh(new T.TorusGeometry(.28, .07, 12, 32), W, [0, 1.9, 0]); sh.rotation.x = Math.PI / 2; g.add(sh);
     const band = S.mesh(new T.TorusGeometry(1.31, .06, 10, 64), W, [0, .8, 0]); band.rotation.x = Math.PI / 2; g.add(band);
     const band2 = S.mesh(new T.TorusGeometry(1.31, .06, 10, 64), W, [0, .25, 0]); band2.rotation.x = Math.PI / 2; g.add(band2);
-    g.add(S.mesh(new T.BoxGeometry(.55, .75, .12), W, [0, .4, 1.28])); return g; } },
+    g.add(S.mesh(rbox(T, .55, .75, .12), W, [0, .4, 1.28])); return g; } },
   { k: 'car', l: 'Машина', a: 1, build(S) { const T = S.T, g = new T.Group(), W = 0xe8ecf3;
-    g.add(S.mesh(new T.BoxGeometry(2.4, .55, 1.2), W, [0, .65, 0]), S.mesh(new T.BoxGeometry(1.3, .5, 1.05), W, [-.15, 1.18, 0]));
+    g.add(S.mesh(rbox(T, 2.4, .55, 1.2), W, [0, .65, 0]), S.mesh(rbox(T, 1.3, .5, 1.05), W, [-.15, 1.18, 0]));
     [[-.8, .62], [.8, .62], [-.8, -.62], [.8, -.62]].forEach(([x, z]) => { const w = S.mesh(new T.CylinderGeometry(.33, .33, .22, 28), W, [x, .35, z]); w.rotation.x = Math.PI / 2; g.add(w); });
     g.add(S.mesh(new T.SphereGeometry(.1, 16, 12), W, [1.2, .72, .38]), S.mesh(new T.SphereGeometry(.1, 16, 12), W, [1.2, .72, -.38]));
-    g.add(S.mesh(new T.BoxGeometry(.04, .32, .8), W, [.52, 1.2, 0])); return g; } },
+    g.add(S.mesh(rbox(T, .04, .32, .8), W, [.52, 1.2, 0])); return g; } },
   { k: 'rocket', l: 'Зымыран', a: 2, build(S) { const T = S.T, g = new T.Group(), W = 0xe8ecf3;
     g.add(S.mesh(new T.CylinderGeometry(.45, .45, 1.8, 40), W, [0, 1.35, 0]), S.mesh(new T.ConeGeometry(.45, .8, 40), W, [0, 2.65, 0]));
-    [0, 1, 2].forEach(i => { const f = S.mesh(new T.BoxGeometry(.08, .6, .55), W, [0, .65, 0]); const a = i * Math.PI * 2 / 3; f.position.x = Math.cos(a) * .55; f.position.z = Math.sin(a) * .55; f.rotation.y = -a; g.add(f); });
+    [0, 1, 2].forEach(i => { const f = S.mesh(rbox(T, .08, .6, .55), W, [0, .65, 0]); const a = i * Math.PI * 2 / 3; f.position.x = Math.cos(a) * .55; f.position.z = Math.sin(a) * .55; f.rotation.y = -a; g.add(f); });
     const win_ = S.mesh(new T.TorusGeometry(.18, .05, 12, 30), W, [0, 1.7, .44]); g.add(win_); g.add(S.mesh(new T.SphereGeometry(.15, 20, 14), W, [0, 1.7, .4]));
     const fl = S.mesh(new T.ConeGeometry(.3, .5, 24), W, [0, .25, 0]); fl.rotation.x = Math.PI; g.add(fl); return g; } },
 ];
@@ -1091,7 +1137,7 @@ function g3Paint() {
   P3.forEach((c, i) => { const bt = el('button', { class: i === p3Col ? 'on' : '', style: `background:#${c.toString(16).padStart(6, '0')}`, 'aria-label': 'түс' }); bt.onclick = () => { p3Col = i; pal.querySelectorAll('button').forEach((x, j) => x.classList.toggle('on', j === i)); snd('flip'); }; pal.append(bt); });
   const S = make3D(host, { cam: [0, 3, 7.2], look: [0, 1.4, 0], rotY: -.5 }); if (!S) return; window._s3 = S;
   const g = M.build(S); S.world.add(g); const parts = []; g.traverse(o => o.isMesh && parts.push(o)); S.setPick(parts); let painted = new Set();
-  S.tap(o => { if (!o) return; o.material.color.setHex(P3[p3Col]); o.scale.multiplyScalar(1.12); setTimeout(() => o.scale.multiplyScalar(1 / 1.12), 160); snd('flip'); painted.add(o); if (painted.size === Math.ceil(parts.length / 2)) msg('🌟 Керемет бояп жатырсың!', 'ok'); });
+  S.tap(o => { if (!o) return; o.material.color.copy(S.lin(P3[p3Col])); o.scale.multiplyScalar(1.12); setTimeout(() => o.scale.multiplyScalar(1 / 1.12), 160); snd('flip'); painted.add(o); if (painted.size === Math.ceil(parts.length / 2)) msg('🌟 Керемет бояп жатырсың!', 'ok'); });
   done.onclick = () => { if (painted.size < 2) { msg('Алдымен бірнеше бөлікті боя 🙂', 'bad'); return; } addScore(); const nx = list[list.indexOf(M) + 1]; win('«' + M.l + '» әдемі боялды! 🎨', nx ? () => { p3Idx = MODELS3.indexOf(nx); g3Paint(); } : null); };
 }
 
@@ -1119,9 +1165,9 @@ const CL = [[0xef4444, 'Қызыл'], [0x3b82f6, 'Көк'], [0xfacc15, 'Сары
 const SHN = { sphere: ['Шар', 'шарды'], cube: ['Текше', 'текшені'], cyl: ['Цилиндр', 'цилиндрді'], cone: ['Конус', 'конусты'], pyr: ['Пирамида', 'пирамиданы'] };
 const SHK = Object.keys(SHN);
 const SHY = { sphere: .5, cube: .43, cyl: .48, cone: .5, pyr: .48 };
-function shapeGeo(T, k) { return ({ sphere: () => new T.SphereGeometry(.5, 40, 28), cube: () => new T.BoxGeometry(.86, .86, .86), cyl: () => new T.CylinderGeometry(.42, .42, .96, 40), cone: () => new T.ConeGeometry(.5, 1, 40), pyr: () => new T.ConeGeometry(.64, .96, 4) })[k](); }
+function shapeGeo(T, k) { return ({ sphere: () => new T.SphereGeometry(.5, 40, 28), cube: () => rbox(T, .86, .86, .86), cyl: () => new T.CylinderGeometry(.42, .42, .96, 40), cone: () => new T.ConeGeometry(.5, 1, 40), pyr: () => new T.ConeGeometry(.64, .96, 4) })[k](); }
 function toy(S, k, c, id) { const g = new S.T.Group(); const m = S.mesh(shapeGeo(S.T, k), c); m.position.y = SHY[k]; g.add(m); g.userData = { id: id || k, k, c }; return g; }
-function setColor(g, c) { g.traverse(o => { if (o.isMesh && !o.userData.keep) o.material.color.setHex(c); }); g.userData.c = c; }
+function setColor(g, c) { g.traverse(o => { if (o.isMesh && !o.userData.keep) o.material.color.copy(new THREE.Color(c).convertSRGBToLinear()); }); g.userData.c = c; }
 function starGeo(T, r = .35) { const s = new T.Shape(); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 - Math.PI / 2, rr = i % 2 ? r * .45 : r; const x = Math.cos(a) * rr, y = Math.sin(a) * rr; i ? s.lineTo(x, y) : s.moveTo(x, y); } return new T.ExtrudeGeometry(s, { depth: .14, bevelEnabled: true, bevelSize: .04, bevelThickness: .04, bevelSegments: 2 }); }
 function hop(S, g, h = .8, ms = 520) { const y0 = g.userData.y0 != null ? g.userData.y0 : (g.userData.y0 = g.position.y); tw(S, ms, k => { g.position.y = y0 + Math.sin(k * Math.PI) * h; }); }
 function shakeObj(S, g) { const x0 = g.rotation.z; tw(S, 480, k => { g.rotation.z = x0 + Math.sin(k * Math.PI * 6) * .3 * (1 - k); }); }
@@ -1133,7 +1179,7 @@ function popFx(S, pos, c) { const T = S.T; for (let i = 0; i < 10; i++) { const 
 
 /* ---------- 1. Түсін тап: шарларды жар ---------- */
 function g3Balloons() {
-  const b = body(); const U3 = stage3(b); const S = make3D(U3.host, { cam: [0, 2.4, 9], look: [0, 2.4, 0], rotate: false, ground: false }); if (!S) return;
+  const b = body(); const U3 = stage3(b); const S = make3D(U3.host, { cam: [0, 2.4, 9], look: [0, 2.4, 0], rotate: false, ground: false }); if (!S) return; clouds(S, [[-6, 5.5, -6], [5, 6.5, -8], [0, 4.2, -10]]); [[-6, -4, 4, 0x7ccf6b], [1, -7, 5, 0x6fc257], [7, -4.5, 4, 0x86d575]].forEach(([x, z, r, c]) => { const h = S.mesh(new S.T.SphereGeometry(r, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), c, [x, -2.6, z]); h.scale.y = .5; h.material = S.grass(4); S.scene.add(h); });
   const T = S.T, cols = CL.slice(0, byAge([3, 5, 7])), need = byAge([6, 9, 12]), alive = byAge([6, 8, 10]), spd = byAge([.75, .95, 1.15]); let got = 0, target = pickOne(cols), list = [], last = now3(), changeEvery = byAge([3, 3, 2]);
   const say = () => U3.say(target[1] + ' шарды жар! 🎈'); say();
   function spawn(force) { const c = force || pickOne(cols); const g = new T.Group(); const ball = S.mesh(new T.SphereGeometry(.45, 32, 24), c[0]); ball.scale.set(1, 1.18, 1); const kn = S.mesh(new T.ConeGeometry(.08, .16, 12), c[0], [0, -.58, 0]); kn.rotation.x = Math.PI;
@@ -1175,9 +1221,9 @@ function g3Odd() {
 
 /* ---------- 3. Пішіндер қаласы: санап көр ---------- */
 function cityObj(S, kind) { const T = S.T, g = new T.Group(); g.userData = { id: kind };
-  if (kind === 'house') { const c = pickOne([0xff8a65, 0x64b5f6, 0xffd54f, 0x81c784, 0xba68c8]); g.add(S.mesh(new T.BoxGeometry(.8, .7, .8), c, [0, .35, 0])); const rf = S.mesh(new T.ConeGeometry(.66, .5, 4), 0xd84315, [0, .95, 0]); rf.rotation.y = Math.PI / 4; g.add(rf); g.add(S.mesh(new T.BoxGeometry(.22, .36, .04), 0x6d4c41, [0, .18, .41])); }
+  if (kind === 'house') { const c = pickOne([0xff8a65, 0x64b5f6, 0xffd54f, 0x81c784, 0xba68c8]); g.add(S.mesh(rbox(T, .8, .7, .8), c, [0, .35, 0])); const rf = S.mesh(new T.ConeGeometry(.66, .5, 4), 0xd84315, [0, .95, 0]); rf.rotation.y = Math.PI / 4; g.add(rf); g.add(S.mesh(rbox(T, .22, .36, .04), 0x6d4c41, [0, .18, .41])); }
   if (kind === 'tree') { g.add(S.mesh(new T.CylinderGeometry(.09, .12, .5, 12), 0x8d5a34, [0, .25, 0]), S.mesh(new T.ConeGeometry(.42, .9, 20), 0x2e9e4f, [0, .85, 0])); }
-  if (kind === 'car') { const c = pickOne([0xef4444, 0x3b82f6, 0xfacc15, 0xa855f7]); g.add(S.mesh(new T.BoxGeometry(.9, .3, .5), c, [0, .28, 0]), S.mesh(new T.BoxGeometry(.5, .25, .46), c, [-.05, .55, 0])); [[-.28, .26], [.28, .26], [-.28, -.26], [.28, -.26]].forEach(([x, z]) => { const w = S.mesh(new T.CylinderGeometry(.12, .12, .08, 16), 0x222222, [x, .12, z]); w.rotation.x = Math.PI / 2; g.add(w); }); }
+  if (kind === 'car') { const c = pickOne([0xef4444, 0x3b82f6, 0xfacc15, 0xa855f7]); g.add(S.mesh(rbox(T, .9, .3, .5), c, [0, .28, 0]), S.mesh(rbox(T, .5, .25, .46), c, [-.05, .55, 0])); [[-.28, .26], [.28, .26], [-.28, -.26], [.28, -.26]].forEach(([x, z]) => { const w = S.mesh(new T.CylinderGeometry(.12, .12, .08, 16), 0x222222, [x, .12, z]); w.rotation.x = Math.PI / 2; g.add(w); }); }
   return g; }
 const CITY = { house: ['үй', 'Неше үй бар?'], tree: ['ағаш', 'Неше ағаш бар?'], car: ['машина', 'Неше машина бар?'] };
 function g3Count() {
@@ -1199,7 +1245,7 @@ function g3Count() {
 
 /* ---------- жануарлар ---------- */
 const BK = 0x1d1d1d, PINK = 0xff8fb1;
-function addEyes(S, g, y, z, x = .12, r = .065) { const T = S.T; g.add(S.mesh(new T.SphereGeometry(r, 16, 12), BK, [-x, y, z]), S.mesh(new T.SphereGeometry(r, 16, 12), BK, [x, y, z])); }
+function addEyes(S, g, y, z, x = .12, r = .065) { const T = S.T; [-x, x].forEach(px => { g.add(S.mesh(new T.SphereGeometry(r, 18, 14), BK, [px, y, z])); const hl = new T.Mesh(new T.SphereGeometry(r * .32, 10, 8), new T.MeshBasicMaterial({ color: 0xffffff })); hl.position.set(px + r * .35, y + r * .4, z + r * .75); hl.userData.keep = 1; g.add(hl); }); }
 function sph(S, r, c, p, s) { const m = S.mesh(new S.T.SphereGeometry(r, 32, 22), c, p); if (s) m.scale.set(...s); return m; }
 const ANIM3 = {
   bunny: { l: 'Қоян', acc: 'Қоянды', d: 'Құлағы ұзын, секіріп жүреді, сәбізді жақсы көреді.', b(S) { const g = new S.T.Group(), W = 0xf3f3f3; g.add(sph(S, .5, W, [0, .5, 0], [1, .9, 1.1]), sph(S, .36, W, [0, 1.1, .25]), sph(S, .12, W, [-.14, 1.6, .18], [1, 3.6, .6]), sph(S, .12, W, [.14, 1.6, .18], [1, 3.6, .6]), sph(S, .14, W, [0, .5, -.55]), sph(S, .05, PINK, [0, 1.08, .6])); addEyes(S, g, 1.18, .55); return g; }, mv: 'hop' },
@@ -1261,11 +1307,11 @@ function g3Builder() {
   PIECES.forEach(([k, l]) => bar1.append(el('button', { class: 'chip' + (k === piece ? ' on' : ''), onclick: e => { piece = k; bar1.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === e.currentTarget)); snd('flip'); } }, l)));
   P3.slice(0, 8).forEach((c, i) => { const bt = el('button', { class: i === col ? 'on' : '', style: 'background:' + hex6(c), 'aria-label': 'түс' }); bt.onclick = () => { col = i; pal.querySelectorAll('button').forEach((x, j) => x.classList.toggle('on', j === i)); snd('flip'); }; pal.append(bt); });
   const S = make3D(host, { cam: [0, 6, 8], look: [0, 0, 0], ground: false, rotY: .3 }); if (!S) return; const T = S.T;
-  const base = S.mesh(new T.BoxGeometry(8, .2, 8), 0x8fd36b, [0, -.1, 0]); base.userData.id = 'base'; S.world.add(base);
-  for (let i = -4; i <= 4; i++) { const l1 = new T.Mesh(new T.BoxGeometry(8, .005, .02), new T.MeshBasicMaterial({ color: 0x6fb64f })); l1.position.set(0, .005, i); const l2 = l1.clone(); l2.rotation.y = Math.PI / 2; l2.position.set(i, .005, 0); S.world.add(l1, l2); }
+  const base = S.mesh(rbox(T, 8, .2, 8, .08), 0x8fd36b, [0, -.1, 0]); base.material = S.grass(3); base.userData.id = 'base'; S.world.add(base);
+  for (let i = -4; i <= 4; i++) { const l1 = new T.Mesh(rbox(T, 8, .005, .02), new T.MeshBasicMaterial({ color: 0x6fb64f })); l1.position.set(0, .005, i); const l2 = l1.clone(); l2.rotation.y = Math.PI / 2; l2.position.set(i, .005, 0); S.world.add(l1, l2); }
   const HT = { cube: 1, cyl: 1, roof: .7, sphere: 1, cone: 1, tree: 1.4 };
   function make(k, c) { const g = new T.Group();
-    if (k === 'cube') g.add(S.mesh(new T.BoxGeometry(.98, .98, .98), c, [0, .49, 0]));
+    if (k === 'cube') g.add(S.mesh(rbox(T, .98, .98, .98), c, [0, .49, 0]));
     if (k === 'cyl') g.add(S.mesh(new T.CylinderGeometry(.48, .48, 1, 32), c, [0, .5, 0]));
     if (k === 'roof') { const m = S.mesh(new T.CylinderGeometry(.6, .6, .98, 3), c, [0, .3, 0]); m.rotation.z = Math.PI / 2; m.rotation.y = Math.PI / 2; g.add(m); }
     if (k === 'sphere') g.add(S.mesh(new T.SphereGeometry(.49, 32, 22), c, [0, .49, 0]));
@@ -1290,13 +1336,13 @@ const EMO = { joy: ['Қуанышты', 'Әжесі Айғаныға жаңа қ
 function face3(S, e, hat) { const T = S.T, g = new T.Group(); g.userData = { id: e };
   g.add(sph(S, .9, 0xffd2a8, [0, 1.1, 0]));
   const hatC = S.mesh(new T.CylinderGeometry(.62, .7, .38, 32), hat, [0, 1.92, -.05]); hatC.rotation.x = -.15; g.add(hatC);
-  const ey = (x) => { g.add(sph(S, .16, 0xffffff, [x, 1.25, .76], [1, e === 'sur' || e === 'fear' ? 1.25 : 1, .6]), sph(S, .08, BK, [x, 1.25, .85])); }; ey(-.3); ey(.3);
+  const ey = (x) => { g.add(sph(S, .16, 0xffffff, [x, 1.25, .76], [1, e === 'sur' || e === 'fear' ? 1.25 : 1, .6]), sph(S, .08, BK, [x, 1.25, .85])); const hl = new T.Mesh(new T.SphereGeometry(.028, 10, 8), new T.MeshBasicMaterial({ color: 0xffffff })); hl.position.set(x + .03, 1.28, .925); g.add(hl); }; ey(-.3); ey(.3);
   g.add(sph(S, .13, 0xff9aa2, [-.5, .98, .66], [1, .7, .4]), sph(S, .13, 0xff9aa2, [.5, .98, .66], [1, .7, .4]));
-  const brow = (x, rz, y = 1.52) => { const m = S.mesh(new T.BoxGeometry(.28, .06, .06), 0x5d4037, [x, y, .78]); m.rotation.z = rz; g.add(m); };
+  const brow = (x, rz, y = 1.52) => { const m = S.mesh(rbox(T, .28, .06, .06), 0x5d4037, [x, y, .78]); m.rotation.z = rz; g.add(m); };
   if (e === 'ang') { brow(-.3, -.45, 1.47); brow(.3, .45, 1.47); } else if (e === 'sad' || e === 'fear') { brow(-.3, .35); brow(.3, -.35); } else if (e === 'sur') { brow(-.3, 0, 1.6); brow(.3, 0, 1.6); } else { brow(-.3, .1); brow(.3, -.1); }
   if (e === 'joy') { const m = S.mesh(new T.TorusGeometry(.3, .06, 12, 30, Math.PI), 0xc2185b, [0, .85, .8]); m.rotation.z = Math.PI; g.add(m); }
   if (e === 'sad') { const m = S.mesh(new T.TorusGeometry(.26, .055, 12, 30, Math.PI), 0x8d3b52, [0, .62, .82]); g.add(m); }
-  if (e === 'ang') { g.add(S.mesh(new T.BoxGeometry(.42, .07, .06), 0x8d3b52, [0, .72, .84])); }
+  if (e === 'ang') { g.add(S.mesh(rbox(T, .42, .07, .06), 0x8d3b52, [0, .72, .84])); }
   if (e === 'sur') g.add(sph(S, .15, 0x6d1b2f, [0, .7, .84], [1, 1.3, .5]));
   if (e === 'fear') { g.add(sph(S, .12, 0x6d1b2f, [0, .7, .85], [1.6, .6, .5])); g.add(sph(S, .07, 0x9ad0ff, [.55, 1.45, .6])); }
   return g; }
@@ -1322,7 +1368,7 @@ function bear3(S) { const T = S.T, g = new T.Group(), Bn = 0xa0703f; g.userData 
   addEyes(S, g, 1.88, .5, .17, .055);
   const mouth = S.mesh(new T.TorusGeometry(.09, .025, 8, 20, Math.PI), 0x3e2723, [0, 1.5, .62]); g.add(mouth); g.userData.mouth = mouth; return g; }
 function box3(S, c, mark) { const T = S.T, g = new T.Group(); g.userData = { id: 'box', c, mark };
-  g.add(S.mesh(new T.BoxGeometry(1.3, .1, 1.1), c, [0, .05, 0]), S.mesh(new T.BoxGeometry(1.3, .6, .08), c, [0, .35, .55]), S.mesh(new T.BoxGeometry(1.3, .6, .08), c, [0, .35, -.55]), S.mesh(new T.BoxGeometry(.08, .6, 1.1), c, [.65, .35, 0]), S.mesh(new T.BoxGeometry(.08, .6, 1.1), c, [-.65, .35, 0]));
+  g.add(S.mesh(rbox(T, 1.3, .1, 1.1), c, [0, .05, 0]), S.mesh(rbox(T, 1.3, .6, .08), c, [0, .35, .55]), S.mesh(rbox(T, 1.3, .6, .08), c, [0, .35, -.55]), S.mesh(rbox(T, .08, .6, 1.1), c, [.65, .35, 0]), S.mesh(rbox(T, .08, .6, 1.1), c, [-.65, .35, 0]));
   if (mark) { const t = toy(S, mark, 0xffffff); t.userData = {}; t.scale.setScalar(.35); t.position.set(0, .66, .62); t.traverse(o => { if (o.isMesh) o.userData.keep = 1; }); g.add(t); }
   return g; }
 function g3Help() {
@@ -1353,8 +1399,8 @@ function g3Help() {
 /* ---------- 9. Қоянша секір ---------- */
 function g3Bunny() {
   const b = body(); const jb = el('button', { class: 'btn3 go', style: 'font-size:22px;padding:16px 40px' }, '⬆️ Секір!'); const U3 = stage3(b); b.append(jb);
-  const S = make3D(U3.host, { cam: [0, 2.4, 8.5], look: [0, 1.2, 0], rotate: false, ground: false }); if (!S) return; const T = S.T;
-  const road = S.mesh(new T.BoxGeometry(40, .2, 3), 0x8fd36b, [0, -.1, 0]); S.world.add(road);
+  const S = make3D(U3.host, { cam: [0, 2.4, 8.5], look: [0, 1.2, 0], rotate: false, ground: false }); if (!S) return; const T = S.T; clouds(S, [[-5, 5, -8], [4, 5.8, -10]]); [[-7, -6, 3.2, 0x7ccf6b], [0, -9, 4.2, 0x6fc257], [7, -6.5, 3.4, 0x86d575]].forEach(([x, z, r, c]) => { const h = S.mesh(new T.SphereGeometry(r, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), c, [x, -.2, z]); h.scale.y = .45; h.material = S.grass(4); S.scene.add(h); });
+  const road = S.mesh(rbox(T, 40, .2, 10), 0x8fd36b, [0, -.1, 2]); road.material = S.grass(10); S.world.add(road); const path = S.mesh(rbox(T, 40, .05, 1.6), 0xd8c08f, [0, .01, 0]); S.world.add(path);
   const tufts = []; for (let i = 0; i < 26; i++) { const t = S.mesh(new T.ConeGeometry(.08, .3, 6), 0x4caf50, [rnd(-14, 14), .1, rnd(-1.3, 1.3)]); S.world.add(t); tufts.push(t); }
   const bun = ANIM3.bunny.b(S); bun.rotation.y = Math.PI / 2; bun.position.set(-2.5, 0, 0); bun.scale.setScalar(.8); S.world.add(bun);
   const need = byAge([6, 10, 14]), speed = byAge([3.2, 4.2, 5.4]); let passed = 0, vy = 0, y = 0, obs = [], nextAt = now3() + 1500, last = now3(), over = false, hits = 0;
@@ -1373,11 +1419,11 @@ function g3Bunny() {
 const MOVES = [['up', '🙌', 'Қолды көтер'], ['side', '🤸', 'Қолды жан-жаққа жай'], ['squat', '🧎', 'Отыр'], ['clap', '👏', 'Қол соқ'], ['leg', '🦩', 'Бір аяқпен тұр'], ['jump', '🦘', 'Секір']];
 function robot3(S) { const T = S.T, g = new T.Group(), C = 0x5b8dff, Y = 0xf2b632; g.userData = { id: 'robot' };
   const torso = new T.Group(); torso.position.y = 1.2; g.add(torso);
-  torso.add(S.mesh(new T.BoxGeometry(1, 1.1, .6), C, [0, .55, 0]), S.mesh(new T.BoxGeometry(.8, .62, .6), 0xe8ecf3, [0, 1.5, 0]), S.mesh(new T.CylinderGeometry(.03, .03, .3, 8), Y, [0, 1.95, 0]), sph(S, .08, 0xef4444, [0, 2.12, 0]), S.mesh(new T.CylinderGeometry(.14, .14, .04, 20), Y, [0, .75, .31]));
+  torso.add(S.mesh(rbox(T, 1, 1.1, .6), C, [0, .55, 0]), S.mesh(rbox(T, .8, .62, .6), 0xe8ecf3, [0, 1.5, 0]), S.mesh(new T.CylinderGeometry(.03, .03, .3, 8), Y, [0, 1.95, 0]), sph(S, .08, 0xef4444, [0, 2.12, 0]), S.mesh(new T.CylinderGeometry(.14, .14, .04, 20), Y, [0, .75, .31]));
   torso.children[4].rotation.x = Math.PI / 2;
   [-.17, .17].forEach(x => torso.add(sph(S, .09, 0x20c5b0, [x, 1.56, .3])));
-  const arm = sx => { const p = new T.Group(); p.position.set(sx * .62, 1.02, 0); p.add(S.mesh(new T.BoxGeometry(.24, .85, .24), C, [0, -.42, 0]), sph(S, .16, Y, [0, -.9, 0])); torso.add(p); return p; };
-  const leg = sx => { const p = new T.Group(); p.position.set(sx * .26, 1.2, 0); p.add(S.mesh(new T.BoxGeometry(.3, 1, .3), 0x3b4a8a, [0, -.55, 0]), S.mesh(new T.BoxGeometry(.36, .16, .5), Y, [0, -1.1, .08])); g.add(p); return p; };
+  const arm = sx => { const p = new T.Group(); p.position.set(sx * .62, 1.02, 0); p.add(S.mesh(rbox(T, .24, .85, .24), C, [0, -.42, 0]), sph(S, .16, Y, [0, -.9, 0])); torso.add(p); return p; };
+  const leg = sx => { const p = new T.Group(); p.position.set(sx * .26, 1.2, 0); p.add(S.mesh(rbox(T, .3, 1, .3), 0x3b4a8a, [0, -.55, 0]), S.mesh(rbox(T, .36, .16, .5), Y, [0, -1.1, .08])); g.add(p); return p; };
   g.userData.j = { torso, aL: arm(-1), aR: arm(1), lL: leg(-1), lR: leg(1) }; return g; }
 function poseOf(m) { const P = { aL: [0, 0], aR: [0, 0], lL: 0, lR: 0, ty: 1.2, gy: 0, tx: 0 };
   if (m === 'up') { P.aL = [0, -Math.PI * .95]; P.aR = [0, Math.PI * .95]; }
@@ -1390,7 +1436,7 @@ function poseOf(m) { const P = { aL: [0, 0], aR: [0, 0], lL: 0, lR: 0, ty: 1.2, 
 function doMove(S, R, m, ms = 650) { const J = R.userData.j, A = poseOf('rest'), B = poseOf(m);
   tw(S, ms, k => { const q = Math.sin(k * Math.PI); J.aL.rotation.x = A.aL[0] + (B.aL[0] - A.aL[0]) * q; J.aL.rotation.z = A.aL[1] + (B.aL[1] - A.aL[1]) * q; J.aR.rotation.x = A.aR[0] + (B.aR[0] - A.aR[0]) * q; J.aR.rotation.z = A.aR[1] + (B.aR[1] - A.aR[1]) * q; J.lL.rotation.x = B.lL * q; J.lR.rotation.x = B.lR * q; J.torso.position.y = 1.2 + (B.ty - 1.2) * q; J.lL.position.y = J.lR.position.y = 1.2 + (B.ty - 1.2) * q; R.position.y = B.gy * q; if (m === 'clap' && k > .45 && k < .55 && !R.userData.c) { R.userData.c = 1; snd('flip'); } if (k >= 1) R.userData.c = 0; }); }
 function g3Moves() {
-  const b = body(); const btns = el('div', { class: 'pal3' }); const U3 = stage3(b); b.append(btns); const S = make3D(U3.host, { cam: [0, 2.2, 6.4], look: [0, 1.4, 0] }); if (!S) return;
+  const b = body(); const btns = el('div', { class: 'pal3' }); const U3 = stage3(b); b.append(btns); const S = make3D(U3.host, { cam: [0, 2.6, 8.6], look: [0, 1.7, 0] }); if (!S) return;
   const R3 = robot3(S); S.world.add(R3); const pool = AGE === 0 ? MOVES.slice(0, 4) : MOVES; const L = byAge([2, 3, 4]), RN = 5; let r = 0, seq = [], k = 0, busy = true;
   pool.forEach(([m, ic, l]) => { const bt = el('button', { class: 'blk', style: 'background:linear-gradient(180deg,#5b8dff,#2f5fd0)' }, ic + ' ' + l); bt.onclick = () => { if (busy) return; doMove(S, R3, m, 600);
       if (m === seq[k]) { snd('ok'); k++; U3.say('✅ ' + k + ' / ' + L, 'ok'); if (k === L) { addScore(); busy = true; U3.say(praise() + ' Ретін дұрыс қайталадың!', 'ok'); setTimeout(() => { r++; round(); }, 1500); } }
@@ -1406,9 +1452,9 @@ function g3Moves() {
 function g3Runner() {
   const b = body(); const ctr = el('div', { class: 'row3' }); const lb = el('button', { class: 'btn3', style: 'font-size:22px;padding:16px 30px' }, '⬅️ Солға'), rb = el('button', { class: 'btn3', style: 'font-size:22px;padding:16px 30px' }, 'Оңға ➡️'); ctr.append(lb, rb);
   const U3 = stage3(b); b.append(ctr);
-  const S = make3D(U3.host, { cam: [0, 3.2, 6.5], look: [0, .4, -5], rotate: false, ground: false }); if (!S) return; const T = S.T;
-  S.world.add(S.mesh(new T.BoxGeometry(60, .1, 200), 0x8fd36b, [0, -.12, -60]), S.mesh(new T.BoxGeometry(5.2, .12, 200), 0xc9b38a, [0, -.08, -60]));
-  const dashes = []; for (let i = 0; i < 30; i++) [-.87, .87].forEach(x => { const d = S.mesh(new T.BoxGeometry(.08, .02, 1), 0xffffff, [x, 0, -i * 3]); S.world.add(d); dashes.push(d); });
+  const S = make3D(U3.host, { cam: [0, 3.2, 6.5], look: [0, .4, -5], rotate: false, ground: false }); if (!S) return; const T = S.T; clouds(S, [[-8, 8, -40], [6, 9, -50], [14, 7, -35]]);
+  const field = S.mesh(rbox(T, 60, .1, 200), 0x8fd36b, [0, -.12, -60]); field.material = S.grass(30); S.world.add(field, S.mesh(rbox(T, 5.2, .12, 200), 0xc9b38a, [0, -.08, -60]));
+  const dashes = []; for (let i = 0; i < 30; i++) [-.87, .87].forEach(x => { const d = S.mesh(rbox(T, .08, .02, 1), 0xffffff, [x, 0, -i * 3]); S.world.add(d); dashes.push(d); });
   const trees = []; for (let i = 0; i < 24; i++) { const t = cityObj(S, 'tree'); t.position.set((i % 2 ? 1 : -1) * rnd(3.4, 6), 0, -i * 4); t.scale.setScalar(1.6); S.world.add(t); trees.push(t); }
   const hero = ANIM3.bunny.b(S); hero.rotation.y = Math.PI; hero.scale.setScalar(.7); S.world.add(hero);
   const LN = [-1.75, 0, 1.75]; let lane = 1, things = [], last = now3(), nextAt = now3() + 1200, over = false, stars = 0, hits = 0; const speed = byAge([7, 9.5, 12]), dur = byAge([35, 45, 55]), t0 = now3();
@@ -1422,7 +1468,7 @@ function g3Runner() {
     dashes.forEach(d => { d.position.z += speed * dt; if (d.position.z > 4) d.position.z -= 90; }); trees.forEach(d => { d.position.z += speed * dt; if (d.position.z > 6) d.position.z -= 96; });
     if (t > nextAt) { const isStar = Math.random() < .45; const ln = Math.random() * 3 | 0; let o;
       if (isStar) { o = new T.Group(); const s = S.mesh(starGeo(T, .38), 0xffc107, [0, .8, 0]); o.add(s); o.userData = { id: 'star' }; S.anim(() => { if (!o.parent) return false; s.rotation.y += .06; }); }
-      else { o = new T.Group(); o.add(S.mesh(new T.ConeGeometry(.42, .9, 24), 0xff7a1a, [0, .45, 0]), S.mesh(new T.CylinderGeometry(.33, .36, .14, 24), 0xffffff, [0, .45, 0]), S.mesh(new T.BoxGeometry(.9, .08, .9), 0xff7a1a, [0, .04, 0])); o.userData = { id: 'cone' }; }
+      else { o = new T.Group(); o.add(S.mesh(new T.ConeGeometry(.42, .9, 24), 0xff7a1a, [0, .45, 0]), S.mesh(new T.CylinderGeometry(.33, .36, .14, 24), 0xffffff, [0, .45, 0]), S.mesh(rbox(T, .9, .08, .9), 0xff7a1a, [0, .04, 0])); o.userData = { id: 'cone' }; }
       o.position.set(LN[ln], 0, -45); o.userData.ln = ln; S.world.add(o); things.push(o); nextAt = t + rnd(byAge([1300, 1000, 750]), byAge([2000, 1600, 1200])); }
     things.forEach(o => { o.position.z += speed * dt; if (!o.userData.hit && Math.abs(o.position.z) < .6 && o.userData.ln === lane) { o.userData.hit = 1; if (o.userData.id === 'star') { stars++; addScore(); snd('ok'); S.world.remove(o); U3.say('⭐ ' + stars, 'ok'); } else { hits++; snd('bad'); shakeObj(S, hero); U3.say('🙈 Абайла! Солға не оңға бұрыл', 'bad'); } } });
     things = things.filter(o => { if (o.position.z > 6 || !o.parent) { S.world.remove(o); return false; } return true; });
