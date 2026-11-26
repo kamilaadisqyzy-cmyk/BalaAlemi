@@ -521,6 +521,12 @@ body{background:linear-gradient(180deg,#d6eaff,#fdf8ef 420px)}
 .pal3 button.blk{width:auto;border-radius:18px;padding:0 18px;color:#fff;font-weight:900;font-size:17px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .nogl{padding:30px;text-align:center;font-weight:900;color:#5b6685}
 @media(max-width:640px){.gbar{flex-wrap:wrap;gap:8px;padding:8px 10px}.gbar h2{order:9;flex-basis:100%;font-size:18px}.gbar .back,.gbar .rst{padding:8px 12px;font-size:15px}.gbar .score{font-size:16px;padding:4px 10px}.gbar select{margin-left:auto}}
+
+.ghead{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:center}
+.ghimg{position:relative;perspective:900px}
+.ghimg img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:62% 60%;border-radius:28px;border:6px solid #fff;box-shadow:0 12px 0 #d6deee,0 28px 48px rgba(40,60,120,.25);transform:rotateY(-6deg) rotateX(3deg)}
+.ghimg .b3{position:absolute;left:-10px;bottom:18px;background:linear-gradient(180deg,#ffe48a,#f2b632);color:#5a3a00;font-weight:900;border-radius:16px;padding:8px 16px;box-shadow:0 5px 0 #c98d1e,0 12px 20px rgba(0,0,0,.2)}
+@media(max-width:820px){.ghead{grid-template-columns:minmax(0,1fr)}.ghimg img{transform:none}}
 </style>
 </head>
 <body>
@@ -528,12 +534,12 @@ body{background:linear-gradient(180deg,#d6eaff,#fdf8ef 420px)}
   <a class="home" href="index.html#home"><img src="img/logo.webp" alt="">БАЛА ӘЛЕМІ – <span class="ai">AI</span></a>
   <a class="back" href="index.html#catalog">← Барлық материалдар</a>
 </div></header>
-<div class="ghead">
+<div class="ghead"><div class="ghtxt">
   <h1>Интерактивті ойындар 🎈</h1>
   <p>Интерактивті тақтада, планшетте немесе компьютерде ойнауға болады: суретті <b>сүйреп апар</b> немесе алдымен суретті, сосын орнын <b>басып таңда</b>.</p>
   <div class="age3" id="ageBar"><b>Жас тобы:</b><button data-a="-1">Барлығы</button><button data-a="0">3–4 жас</button><button data-a="1">4–5 жас</button><button data-a="2">5–6 жас</button></div>
   <p class="src">Жас тобын таңдаңыз — ойындардың тізімі мен қиындығы соған қарай өзгереді. 11 ойын «ЭКО AI» жобасынан алынды.</p>
-</div>
+</div><div class="ghimg"><img src="img/hero.webp" alt="Балалар мен робот планшетте ойнап отыр"><span class="b3">17 ойын — нағыз 3D</span></div></div>
 <div id="gameGrid"></div>
 
 <div class="lb" id="lb"><img id="lbImg" alt=""></div>
@@ -1491,6 +1497,8 @@ GAMES.push(
   { id: 'runner3d', t: 'Кедергіден өт', d: 'Солға және оңға бұрылып, кедергіден өт, жұлдыз жина', emo: '🏃', d3: 1, run: g3Runner },
 );
 
+const TH3=['shapes3d','tower3d','paint3d','balloons3d','odd3d','count3d','animals3d','changed3d','builder3d','emotions3d','help3d','bunny3d','moves3d','runner3d','applique','waste','eco'];
+GAMES.forEach(g=>{if(TH3.includes(g.id)){g.th='./img/g3/'+g.id+'.webp';delete g.emo;g.contain=false}if(g.id==='delightex'){g.th='img/hab_c_forest.webp';delete g.emo}});
 const SECS=[['akyldy','Ақылды ойындар әлемі','img/i1.webp'],['soilei','Сөйлейтін әлем','img/i2.webp'],['kiial','Қиял мен шығармашылық әлемі','img/i3.webp'],['meirim','Мейірім мен достық мекені','img/i4.webp'],['qozgalys','Қозғалыс – денсаулық кепілі','img/i5.webp']];
 const META={"shapes3d": [["akyldy"], [0, 1, 2]], "tower3d": [["akyldy"], [0, 1, 2]], "place": [["akyldy", "kiial"], [0, 1, 2]], "seasons": [["akyldy"], [0, 1, 2]], "habitat": [["akyldy"], [0, 1, 2]], "homes": [["akyldy"], [0, 1]], "growth": [["akyldy"], [0, 1, 2]], "memory": [["akyldy"], [0, 1, 2]], "waste": [["akyldy", "meirim"], [1, 2]], "riddle": [["soilei"], [1, 2]], "babies": [["soilei"], [0, 1]], "paint3d": [["kiial"], [0, 1, 2]], "studio": [["kiial"], [0, 1, 2]], "applique": [["kiial"], [0, 1, 2]], "puzzle": [["kiial"], [0, 1, 2]], "sticker": [["kiial"], [0, 1, 2]], "eco": [["meirim"], [1, 2]], "delightex": [["akyldy", "soilei"], [0, 1, 2]], "balloons3d": [["akyldy"], [0, 1, 2]], "odd3d": [["akyldy"], [0, 1, 2]], "count3d": [["akyldy"], [0, 1, 2]], "animals3d": [["soilei"], [0, 1, 2]], "changed3d": [["kiial", "akyldy"], [0, 1, 2]], "builder3d": [["kiial"], [0, 1, 2]], "emotions3d": [["meirim"], [0, 1, 2]], "help3d": [["meirim"], [0, 1, 2]], "bunny3d": [["qozgalys"], [0, 1, 2]], "moves3d": [["qozgalys"], [0, 1, 2]], "runner3d": [["qozgalys"], [0, 1, 2]]};
 function renderGrid(){const host=$('#gameGrid');host.innerHTML='';
