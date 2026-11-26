@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Бала әлемі – AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: bright, gentle, festive – a Kazakh kindergarten picture book
+   IDEA: a sunny steppe morning with a yurt, tulips and gold ornament, where children and a friendly robot learn together
+   PICTURE: the author's own illustration of two children in Kazakh hats with a robot and tablet, softly faded into a painted sky
+   COLOUR and TYPE: sky blue to warm cream ground, deep navy titles, gold "AI" badge and ornaments, eight pastel zone cards; Nunito 900 rounded
+   LAYOUT: glass navigation pill, hero title left / illustration right, glass search bar, 4×2 zone cards; each section and material is its own page */
+:root{color-scheme:light;--bg:#fdf8ef;--card:#ffffff;--ink:#1e2b55;--navy:#1d3a8f;--mut:#5b6685;--line:#e6e2f0;--gold:#d9a23a;--gold2:#f6cf6a;--lav:#ece4ff;--pur:#5a2fa0;--cor:#ff6b5e}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 Nunito,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-weight:900;line-height:1.1;text-wrap:balance;margin:0 0 .4em;color:var(--navy)}
+h1{font-size:clamp(34px,5.4vw,58px)}h2{font-size:clamp(26px,3.4vw,38px)}h3{font-size:21px}
+a{color:inherit}
+.band{padding:clamp(28px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1480px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* sky backdrop */
+.sky{position:relative;background:#bfdcff url(img/bg.webp) center 62%/cover no-repeat;overflow:hidden}
+.sky::after{content:"";position:absolute;inset:auto 0 0 0;height:90px;background:linear-gradient(transparent,var(--bg));pointer-events:none;z-index:1}
+.sky.home{background:#9cc8f5 url(img/hero.webp) center bottom/cover no-repeat;min-height:min(56.25vw,980px);display:flex;flex-direction:column}
+.sky.home #hero{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.sky.home::after{height:70px}
+.sky.home::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(225,240,255,.55),rgba(225,240,255,0) 45%);pointer-events:none}
+.ph::before{content:"";position:absolute;inset:-10px -40px;background:radial-gradient(60% 70% at 30% 50%,rgba(255,255,255,.6),transparent 75%);z-index:-1}
+.sky>svg.land{position:absolute;left:0;right:0;bottom:0;width:100%;height:auto;pointer-events:none}
+.orn{position:absolute;top:0;width:clamp(70px,10vw,140px);height:auto;pointer-events:none;z-index:3}
+.orn.l{left:0}.orn.r{right:0;transform:scaleX(-1)}
+
+header{position:relative;z-index:30;padding:14px max(5vw,16px) 0}
+.top{display:flex;align-items:center;gap:20px;max-width:1480px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:900 clamp(20px,2.2vw,26px)/1 Nunito,sans-serif;color:var(--navy);white-space:nowrap}
+.logo img{height:60px;width:auto;filter:drop-shadow(0 2px 4px rgba(255,255,255,.8))}
+.ai{display:inline-block;padding:.08em .34em .12em;border-radius:.28em;background:linear-gradient(180deg,var(--gold2),var(--gold) 60%,#b97c1c);color:#fff;text-shadow:0 1px 1px rgba(120,70,0,.4);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 3px 8px rgba(185,124,28,.35)}
+.sep{width:1px;height:44px;background:#c9cde0}
+nav.main{display:flex;gap:4px;margin-left:auto;align-items:center;background:rgba(255,255,255,.75);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.9);border-radius:999px;padding:6px;box-shadow:0 6px 24px rgba(60,80,140,.12)}
+nav.main a,nav.main>div>button{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border-radius:999px;text-decoration:none;font-weight:800;font-size:16px;border:0;background:none;color:var(--navy);white-space:nowrap}
+nav.main svg{width:22px;height:22px;flex:none}
+nav.main a.on{background:linear-gradient(180deg,#ffe7a8,#f6cf6a);box-shadow:0 3px 10px rgba(217,162,58,.35)}
+nav.main a:not(.on):hover,nav.main>div>button:hover{background:rgba(29,58,143,.06)}
+.dd{position:relative}
+.ddp{display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);width:min(340px,92vw);background:#fff;border-radius:22px;padding:8px;box-shadow:0 14px 40px rgba(40,60,120,.2);z-index:40}
+.dd.open .ddp{display:grid}
+.ddp a{display:flex!important;gap:10px;align-items:center;min-height:46px;padding:4px 12px!important;border-radius:14px!important;font-size:15px!important}
+.ddp a:hover{background:var(--lav)}
+.ddp img{width:34px;height:34px;object-fit:cover;border-radius:10px}
+.ddp hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
+.menu-t{display:none;margin-left:auto;min-height:46px;padding:0 18px;border-radius:999px;border:0;background:#fff;font-weight:800;color:var(--navy);box-shadow:0 4px 14px rgba(60,80,140,.15)}
+
+/* hero */
+.hero{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);align-items:start;gap:24px;width:100%;max-width:1480px;margin:0 auto;padding:clamp(24px,4vw,70px) max(5vw,16px) 24px}
+.ttl{font-size:clamp(34px,4.5vw,72px);font-weight:900;letter-spacing:-.01em;line-height:1;margin:0;color:var(--navy);background:linear-gradient(180deg,#2a4fc0,#16307a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;position:relative;white-space:nowrap}
+.ttl .ai{-webkit-text-fill-color:#fff;font-size:.86em;vertical-align:.04em;position:relative}
+.ttl .ai::after{content:"";position:absolute;right:-.42em;top:-.38em;width:.5em;height:.5em;background:var(--gold);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.swoosh{display:block;width:min(420px,70%);height:16px;margin:8px 0 14px 18%}
+.pill{display:inline-block;padding:8px 26px;border-radius:999px;background:linear-gradient(180deg,#f6f0ff,#e7dcff);border:1.5px solid #d8c8fb;color:var(--pur);font-weight:800;font-size:clamp(15px,1.45vw,20px);width:max-content;white-space:nowrap;box-shadow:0 4px 14px rgba(120,80,200,.12)}
+.dots{display:flex;width:max-content;flex-wrap:nowrap;flex-wrap:wrap;gap:4px 12px;margin:14px 0 0;padding:6px 18px;border-radius:999px;background:rgba(255,255,255,.72);backdrop-filter:blur(6px);font-weight:700;font-size:16px;color:var(--navy)}
+.dots span+span::before{content:"•";color:var(--gold);margin-right:14px}
+.art{display:none}
+.art img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:62% 60%;border-radius:28px;box-shadow:0 10px 30px rgba(60,80,140,.2)}
+
+/* search */
+.search{position:relative;z-index:4;display:flex;gap:14px;align-items:center;max-width:1480px;margin:6px auto 0;padding:14px;border-radius:999px;background:rgba(255,255,255,.62);backdrop-filter:blur(12px);border:2px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(70,100,170,.15)}
+.sw{position:relative;z-index:2;margin:0 max(5vw,16px);padding-bottom:clamp(28px,3vw,48px)}
+.search .in{flex:1 1 380px;display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:0 18px;border:1.5px solid #dfe6f5}
+.search .in svg{width:22px;height:22px;flex:none}
+.search input{border:0;outline:0;background:none;min-height:50px;width:100%;font:600 17px Nunito,sans-serif;color:var(--ink)}
+.search .vs{width:1px;height:40px;background:#cfd6ea}
+.sel{position:relative;flex:0 1 270px}
+select{appearance:none;-webkit-appearance:none;width:100%;font:700 16px Nunito,sans-serif;color:var(--ink);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%231e2b55' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 18px center;border:1.5px solid #dfe6f5;border-radius:999px;min-height:50px;padding:0 44px 0 20px}
+.gbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 28px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--gold2),var(--gold) 70%);color:#fff;font-weight:900;font-size:17px;text-decoration:none;text-shadow:0 1px 1px rgba(120,70,0,.35);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 4px 12px rgba(217,162,58,.4)}
+.gbtn svg{width:20px;height:20px}
+.btn{display:inline-flex;align-items:center;min-height:46px;padding:0 20px;border-radius:999px;text-decoration:none;font-weight:800;border:0;background:var(--navy);color:#fff}
+.btn.ghost{background:#fff;color:var(--navy);box-shadow:0 0 0 1.5px var(--line)}
+.btn.sun{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#fff}
+
+/* zone cards */
+.zones{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;max-width:1580px;margin:0 auto;padding:28px max(3vw,16px) 10px}
+.zone{display:flex;align-items:center;gap:12px;min-height:150px;padding:10px 18px 10px 10px;border-radius:30px;background:linear-gradient(135deg,var(--z1),var(--z2));border:2px solid rgba(255,255,255,.95);box-shadow:0 10px 24px rgba(80,100,160,.13),inset 0 1px 0 #fff;text-decoration:none;transition:transform .2s}
+.zone:hover{transform:translateY(-4px)}
+.zone img{width:clamp(86px,8vw,130px);height:auto;flex:none;filter:drop-shadow(0 6px 8px rgba(60,80,140,.18))}
+.zone h3{margin:0;font-size:clamp(17px,1.4vw,24px);hyphens:auto;line-height:1.15;color:var(--navy)}
+.zone small{display:block;font-weight:700;color:var(--mut);font-size:13px;margin-top:4px}
+.flowers{display:block;width:100%;height:auto;margin-top:-10px}
+
+/* inner pages */
+.cat-tools{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 20px}
+input,textarea{font:16px Nunito,sans-serif;color:var(--ink);background:#fff;border:1.5px solid #dfe6f5;border-radius:16px;min-height:50px;padding:8px 16px}
+.cat-tools input{flex:1 1 240px;border-radius:999px}.cat-tools select{flex:0 1 280px}
+textarea{width:100%;min-height:90px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.mat{display:flex;flex-direction:column;gap:6px;padding:20px;background:#fff;border:2px solid #fff;border-radius:24px;text-decoration:none;box-shadow:0 6px 20px rgba(80,100,160,.1)}
+.mat:hover{border-color:var(--z2)}
+.mat .k{display:flex;gap:6px;flex-wrap:wrap;font-size:13px;font-weight:800}
+.tag{padding:2px 10px;border-radius:999px;background:var(--z1);white-space:nowrap;color:var(--navy)}
+.mat h3{font-size:20px}
+.mat p{margin:0;color:var(--mut);font-size:15px}
+.empty{padding:30px;text-align:center;color:var(--mut);border:2px dashed var(--line);border-radius:20px}
+.ph{position:relative;z-index:2;max-width:1480px;margin:0 auto;padding:clamp(20px,3vw,40px) max(5vw,16px) clamp(50px,7vw,110px);isolation:isolate;display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:center}
+.ph .ic{width:clamp(110px,14vw,180px);aspect-ratio:1;border-radius:36px;background:linear-gradient(135deg,var(--z1),var(--z2));display:grid;place-items:center;border:3px solid #fff;box-shadow:0 10px 24px rgba(80,100,160,.15)}
+.ph .ic img{width:80%;filter:drop-shadow(0 6px 8px rgba(60,80,140,.18))}
+.crumb{font-weight:800;font-size:15px;text-decoration:none;color:var(--mut)}
+.lead{margin:0;font-size:19px;font-weight:700;color:var(--pur)}
+ul.skills{display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:14px 0 0;list-style:none}
+ul.skills li{background:rgba(255,255,255,.8);border:1.5px solid #fff;padding:4px 14px;border-radius:999px;font-weight:800;font-size:15px;color:var(--navy)}
+.two{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;align-items:start}
+.facts{background:#fff;border-radius:26px;padding:6px 22px;box-shadow:0 6px 20px rgba(80,100,160,.1)}
+.facts dl{margin:0}.facts dt{font-weight:900;font-size:14px;color:var(--gold);margin-top:14px}.facts dd{margin:2px 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.stage{background:linear-gradient(160deg,#fff,var(--z1));border:3px solid #fff;border-radius:30px;padding:22px;text-align:center;box-shadow:0 10px 26px rgba(80,100,160,.14)}
+.q{font:900 clamp(21px,2.6vw,28px) Nunito,sans-serif;color:var(--navy);margin:6px 0 16px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.opt{min-height:116px;border-radius:24px;border:3px solid #fff;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:900;font-size:19px;padding:8px;color:var(--navy);box-shadow:0 4px 12px rgba(80,100,160,.12)}
+.opt svg{width:76px;height:76px}
+.opt.ok{border-color:#2fb36b;background:#e9f9ef}
+.opt.no{border-color:var(--cor);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media(prefers-reduced-motion:reduce){.opt.no{animation:none}.zone{transition:none}}
+.score{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-weight:800;gap:10px;flex-wrap:wrap}
+.stars{color:var(--gold);font-size:24px;letter-spacing:2px}
+.media{aspect-ratio:16/9;border-radius:26px;background:linear-gradient(135deg,var(--z2),#6b5bd6);display:grid;place-items:center;color:#fff;text-align:center;padding:16px;position:relative;overflow:hidden}
+.media video{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.media label{cursor:pointer}
+.lyrics{white-space:pre-line;background:#fff;border-radius:18px;padding:14px 18px;text-align:start;font-weight:700}
+.note{font-size:14px;color:var(--mut)}
+.fb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.fb button{min-width:44px;min-height:44px;border-radius:14px;border:2px solid var(--line);background:#fff;font-size:20px;color:#c9cde0}
+.fb button.on{background:#fff6dc;border-color:var(--gold2);color:var(--gold)}
+.sub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px}
+.sub{padding:18px;border-radius:24px;background:linear-gradient(135deg,var(--z1),#fff);border:2px solid #fff;box-shadow:0 4px 14px rgba(80,100,160,.1)}
+.sub h3{font-size:18px}.sub p{margin:0;font-size:15px}
+.inv{max-width:420px;margin:0 auto;border-radius:28px;padding:28px;background:linear-gradient(160deg,#fff6dc,#ffe0ea);color:#3a2a1a;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.12);border:3px solid #fff}
+.inv h3{font-size:28px;color:#b45309}
+.prose{max-width:760px}.prose li{margin:6px 0}
+.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:12px}
+.steps li{counter-increment:s;background:#fff;border-radius:20px;padding:14px 18px 14px 64px;position:relative;box-shadow:0 4px 14px rgba(80,100,160,.08)}
+.steps li::before{content:counter(s);position:absolute;left:16px;top:13px;width:34px;height:34px;border-radius:50%;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#fff;display:grid;place-items:center;font-weight:900}
+form.add{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:#fff;border-radius:26px;padding:22px;box-shadow:0 6px 20px rgba(80,100,160,.1)}
+form.add label{display:grid;gap:4px;font-weight:800;font-size:15px}
+form.add .full{grid-column:1/-1}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;margin-bottom:34px}
+.vcard{display:flex;flex-direction:column;gap:4px;text-decoration:none;background:#fff;border-radius:22px;padding:10px 10px 14px;box-shadow:0 4px 14px rgba(80,100,160,.1)}
+.vcard:hover{transform:translateY(-3px)}
+.vp{position:relative;display:block;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#000;margin-bottom:6px}
+.vp img{width:100%;height:100%;object-fit:cover}
+.vp b{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.9);color:var(--navy);display:grid;place-items:center;font-size:22px;padding-left:4px}
+.vp i{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-style:normal;font-weight:800;font-size:13px;padding:2px 8px;border-radius:8px}
+.vcard strong{color:var(--navy);font-weight:900;font-size:17px;line-height:1.25;padding:0 4px}.vcard small{color:var(--mut);font-weight:700;padding:0 4px}
+.plist{display:grid;gap:10px;margin-bottom:34px}.plist h3{margin:14px 0 2px}
+.prow{display:grid;grid-template-columns:64px minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:center;background:#fff;border-radius:20px;padding:10px 14px 10px 10px;box-shadow:0 4px 14px rgba(80,100,160,.1)}
+.prow img{width:64px;height:64px;border-radius:14px;object-fit:cover}.prow .pt{display:grid}.prow a{font-weight:900;color:var(--navy);text-decoration:none;font-size:18px}.prow span{font-size:14px;color:var(--mut);font-weight:700}.prow audio{width:100%}
+@media(max-width:700px){.prow{grid-template-columns:56px minmax(0,1fr)}.prow img{width:56px;height:56px}.prow audio{grid-column:1/-1}}
+/* 3D көрініс: шағын ойындар */
+.opt{background:linear-gradient(180deg,#fff,#eef3fb)!important;border:3px solid #fff!important;box-shadow:0 7px 0 #c7d2e6,0 14px 22px rgba(40,60,120,.18),inset 0 2px 0 #fff,inset 0 -6px 12px rgba(40,60,120,.07)!important;transition:transform .15s}
+.opt:hover{transform:translateY(-3px)}.opt:active{transform:translateY(5px);box-shadow:0 2px 0 #c7d2e6,0 4px 10px rgba(40,60,120,.18)!important}
+.opt svg,.stage svg,.stage>img{filter:drop-shadow(0 9px 7px rgba(0,0,0,.25))}
+.opt.ok{background:linear-gradient(180deg,#eafff0,#c9f2d6)!important;border-color:#2fb36b!important}
+.mat{box-shadow:0 7px 0 #dde4f2,0 14px 26px rgba(80,100,160,.12)}.mat:hover{transform:translateY(-4px)}
+.zone{box-shadow:0 9px 0 rgba(120,140,190,.25),0 18px 30px rgba(80,100,160,.18),inset 0 2px 0 #fff}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+.toast.show{opacity:1}
+footer{background:linear-gradient(180deg,#1d3a8f,#152a68);color:#fff;position:relative}
+footer h3{color:var(--gold2);font-size:18px}
+footer .wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+footer a{display:block;text-decoration:none;padding:3px 0;opacity:.92}
+.full-title{font-size:15px;opacity:.88;max-width:60ch}
+.divo{display:block;margin:0 auto;width:min(360px,70%);height:auto}
+
+@media(max-width:1100px){.zones{grid-template-columns:repeat(2,minmax(0,1fr))}.sep{display:none}}
+@media(max-width:960px){.pill,.dots{width:auto;white-space:normal;flex-wrap:wrap;justify-content:center}.dots{margin:14px auto 0}.sky.home{background:linear-gradient(180deg,#bcdcff,#e6f1ff 60%,var(--bg))}.sky.home::before{display:none}.art{display:block}.hero{grid-template-columns:minmax(0,1fr);min-height:0}.hero .txt{text-align:center}.swoosh{margin:8px auto 14px}.dots{justify-content:center}.two{grid-template-columns:minmax(0,1fr)}.search{flex-wrap:wrap;border-radius:30px}.search .vs{display:none}.sel{flex:1 1 200px}.gbtn{flex:1 1 100%}}
+@media(max-width:1180px){nav.main{display:none;position:absolute;top:calc(100% + 8px);right:max(5vw,16px);left:max(5vw,16px);flex-direction:column;align-items:stretch;border-radius:26px;background:#fff}nav.main.open{display:flex}.menu-t{display:inline-flex;align-items:center}.ddp{position:static;transform:none;width:auto;box-shadow:none;padding:0 0 0 12px}}
+@media(max-width:600px){.ttl{font-size:clamp(32px,10.5vw,46px)}.zones{grid-template-columns:minmax(0,1fr);gap:14px}.zone{min-height:110px}.ph{grid-template-columns:minmax(0,1fr)}.ph .ic{width:110px}form.add{grid-template-columns:minmax(0,1fr)}footer .wrap{grid-template-columns:minmax(0,1fr)}.opt{min-height:100px}.logo img{height:42px}.logo span.t{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="orn" viewBox="0 0 140 140"><g fill="none" stroke="url(#gg)" stroke-width="5" stroke-linecap="round"><path d="M0 120C40 118 60 96 62 62c2-30 22-50 56-56"/><path d="M62 62c-16-4-30 6-28 20 2 12 18 14 22 4 3-8-4-14-10-10"/><path d="M118 6c-8 14-4 30 10 32 10 1 14-12 6-16-6-3-10 3-7 7"/><path d="M0 70c18 0 30-10 32-28 1-14 12-22 26-22"/><path d="M58 20c-6-10-20-10-22 0-2 8 8 12 12 6"/><path d="M70 0c-2 10 6 18 16 16"/><path d="M14 140c-2-16 8-28 24-28"/></g><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6cf6a"/><stop offset="1" stop-color="#c98d1e"/></linearGradient></defs></symbol>
+</svg>
+<div class="sky" id="sky">
+<svg class="orn l" viewBox="0 0 140 140" aria-hidden="true"><use href="#orn"/></svg>
+<svg class="orn r" viewBox="0 0 140 140" aria-hidden="true"><use href="#orn"/></svg>
+<header><div class="top">
+  <a class="logo" href="#home" aria-label="Бала әлемі – AI, басты бет"><img src="img/logo.webp" alt=""><span class="t">БАЛА ӘЛЕМІ – <span class="ai">AI</span></span></a>
+  <span class="sep"></span>
+  <button class="menu-t" id="menuT" aria-expanded="false" aria-controls="nav">Мәзір</button>
+  <nav class="main" id="nav">
+    <a href="#home" data-n="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Басты бет</a>
+    <div class="dd" id="dd"><button id="ddb" aria-expanded="false" aria-controls="ddp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>Бөлімдер<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:16px"><path d="M6 9l6 6 6-6"/></svg></button><div class="ddp" id="ddp"></div></div>
+    <a href="#author" data-n="author"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Автор туралы</a>
+    <a href="#metodika" data-n="metodika"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M3 12h18"/></svg>Әдістемелік қоржын</a>
+  </nav>
+</div></header>
+<div id="hero"></div>
+</div>
+<main id="app"></main>
+<footer class="band"><svg class="divo" viewBox="0 0 360 40" aria-hidden="true"><g fill="none" stroke="#f6cf6a" stroke-width="3" stroke-linecap="round"><path d="M10 20h120M230 20h120"/><path d="M180 6c-14 0-22 14-12 20 7 4 12-4 8-8M180 6c14 0 22 14 12 20-7 4-12-4-8-8"/><path d="M150 20c8-12 22-10 22 0M210 20c-8-12-22-10-22 0"/><circle cx="180" cy="32" r="3" fill="#f6cf6a"/></g></svg>
+<div class="wrap" style="margin-top:20px">
+  <div><h3>«Бала әлемі – AI»</h3><p class="full-title">Жасанды интеллект мүмкіндіктері арқылы бес даму бағыты бойынша авторлық цифрлық білім беру кеңістігін қалыптастыру</p></div>
+  <div><h3>Бөлімдер</h3><div id="fsec"></div></div>
+  <div><h3>Сайт иесіне</h3><a href="games.html">Интерактивті ойындар</a><a href="#catalog">Барлық материалдар</a><a href="#add">Материал қосу</a><a href="#metodika">Қолдану қағидалары</a><p class="full-title">Балалардың жеке деректері мен фотосуреттері ата-ананың келісімінсіз жарияланбайды.</p></div>
+</div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const toast=t=>{const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800)};
+
+const IC={
+ brain:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><rect x="12" y="14" width="12" height="12" rx="3" fill="#3d8bfd"/><circle cx="34" cy="20" r="7" fill="#ff6b5e"/><path d="M14 40l7-11 7 11z" fill="#ffc83d"/><rect x="30" y="31" width="10" height="10" rx="2" fill="#2fb36b"/>',
+ talk:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><path d="M10 14h26a5 5 0 015 5v11a5 5 0 01-5 5H22l-8 6v-6h-4a5 5 0 01-5-5V19a5 5 0 015-5z" fill="#fff" stroke="#1d2a44" stroke-width="2"/><circle cx="16" cy="25" r="2.5" fill="#1d2a44"/><circle cx="24" cy="25" r="2.5" fill="#1d2a44"/><circle cx="32" cy="25" r="2.5" fill="#1d2a44"/>',
+ art:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><path d="M26 8c10 0 18 7 18 16 0 5-4 7-8 7h-4a3 3 0 00-2 5c2 3 0 7-4 7-10 0-18-8-18-18S16 8 26 8z" fill="#fff" stroke="#1d2a44" stroke-width="2"/><circle cx="18" cy="20" r="3.5" fill="#ff6b5e"/><circle cx="27" cy="15" r="3.5" fill="#ffc83d"/><circle cx="36" cy="21" r="3.5" fill="#3d8bfd"/><circle cx="16" cy="30" r="3.5" fill="#2fb36b"/>',
+ heart:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><path d="M26 42S9 32 9 20a8 8 0 0117-3 8 8 0 0117 3c0 12-17 22-17 22z" fill="#ff6b5e"/><path d="M17 19a4 4 0 014-4" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>',
+ run:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><circle cx="30" cy="11" r="5" fill="#1d2a44"/><path d="M28 18l-8 8 6 5-3 11M28 18l5 9 8 1M20 26l-9-1M26 31l9 6" stroke="#1d2a44" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+ video:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><rect x="8" y="14" width="36" height="24" rx="6" fill="#1d2a44"/><path d="M22 20l11 6-11 6z" fill="#ffc83d"/>',
+ music:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><path d="M20 36V14l18-4v22" stroke="#1d2a44" stroke-width="3.5" fill="none" stroke-linejoin="round"/><ellipse cx="16" cy="36" rx="6" ry="5" fill="#1d2a44"/><ellipse cx="34" cy="32" rx="6" ry="5" fill="#1d2a44"/>',
+ home:'<circle cx="26" cy="26" r="24" fill="#fff" opacity=".6"/><path d="M8 26L26 10l18 16" stroke="#1d2a44" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 23v17h26V23" fill="#fff" stroke="#1d2a44" stroke-width="3"/><path d="M26 38s-7-4-7-9a3.5 3.5 0 017-1 3.5 3.5 0 017 1c0 5-7 9-7 9z" fill="#ff6b5e"/>'
+};
+const ico=(k,cls='')=>`<svg class="${cls}" viewBox="0 0 52 52" aria-hidden="true">${IC[k]}</svg>`;
+
+const SEC=[
+ {id:'akyldy',n:1,t:'Ақылды ойындар әлемі',d:'Танымдық және зияткерлік дағдыларды дамыту',z1:'#e3efff',z2:'#c9dfff',img:'img/i1.webp',i:'brain',sk:['Түстер мен пішіндер','Салыстыру және топтастыру','Санау','Логикалық ойлау','Артық затты табу','Сәйкестендіру']},
+ {id:'soilei',n:2,t:'Сөйлейтін әлем',d:'Коммуникативтік дағдыларды дамыту',z1:'#fff3dd',z2:'#ffe0b8',img:'img/i2.webp',i:'talk',sk:['Сөздік қорды байыту','Сурет бойынша әңгімелеу','Сұрақтарға жауап беру','Дыбыстар мен сөздерді дұрыс айту']},
+ {id:'kiial',n:3,t:'Қиял мен шығармашылық әлемі',d:'Шығармашылық дағдылары және зерттеу іс-әрекеті',z1:'#f3eaff',z2:'#e0cdff',img:'img/i3.webp',i:'art',sk:['Сурет салу және құрастыру','Бейнелерді толықтыру','Еркін шығармашылық','Қарапайым тәжірибелер мен бақылаулар']},
+ {id:'meirim',n:4,t:'Мейірім мен достық мекені',d:'Әлеуметтік-эмоционалды дағдыларды қалыптастыру',z1:'#e8f8ef',z2:'#cdeedd',img:'img/i4.webp',i:'heart',sk:['Эмоцияларды тану','Достық пен сыйластық','Жақсы мен жағымсыз әрекет','Бірлесіп ойнау және көмектесу']},
+ {id:'qozgalys',n:5,t:'Қозғалыс – денсаулық кепілі',d:'Физикалық қасиеттерді дамыту',z1:'#ecf8e0',z2:'#d3eec0',img:'img/i5.webp',i:'run',sk:['Қимылды қайталау','Бағытты анықтау','Ептілік пен үйлесімділік','Қимылды ойындар мен сергіту сәттері']},
+ {id:'video',n:6,t:'Көр де, үйрен!',d:'ЖИ көмегімен әзірленген бейнематериалдар студиясы',z1:'#e4f1ff',z2:'#cbe2ff',img:'img/i6.webp',i:'video',sk:['Танымдық бейнероликтер','ЖИ-ертегілер','Жануарлар мен табиғат','Мамандықтар','Ашық сабақ үзінділері','Тақырыптық анимациялар']},
+ {id:'auen',n:7,t:'Әуенді әлем',d:'ЖИ көмегімен әзірленген әндер мен әуендер',z1:'#fff1e2',z2:'#ffdcbc',img:'img/i7.webp',i:'music',sk:['Авторлық әндер','Амандасу және қоштасу','Сергіту сәті әуендері','Қимылды ойын әуендері','Жыл мезгілдері','Мерекелік әндер']},
+ {id:'family',n:8,t:'Отбасы және балабақша',d:'Ата-аналармен цифрлық байланыс',z1:'#e8f2ff',z2:'#d0e4fb',img:'img/i8.webp',i:'home',sk:['Шақыру әлемі','Отбасылық ойын уақыты','Ата-аналарға кеңес','Бірге ойнайық!','Отбасылық шығармашылық']}
+];
+const SM=Object.fromEntries(SEC.map(s=>[s.id,s]));
+const TYPES={game:'Ойын',video:'Бейне',audio:'Ән / әуен',family:'Отбасылық',guide:'Кеңес'};
+const AGES=['3–4 жас','4–5 жас','5–6 жас'];
+
+const BASE=[
+ {id:'v-mamandyq',sec:'video',type:'video',t:'«Мамандықтар әлемі»',age:'5–6 жас',goal:'Мамандықтар туралы түсінік беру.',tools:'Экран; мамандық атрибуттары бар ойыншықтар.',rule:'Бейнені көргеннен кейін балалар рөлдік ойын ойнайды. Қолдануға болатын сабақ: қоршаған ортамен танысу.'},
+ {id:'v-zhyl',sec:'video',type:'video',t:'«Жыл мезгілдері»',age:'4–5 жас',goal:'Жыл мезгілдерінің белгілерін ажырату.',tools:'Экран; мезгіл суреттері.',rule:'Бейненің әр үзіндісінен кейін тоқтап, мезгілді атау. Қолдануға болатын сабақ: жаратылыстану, ашық сабақ.'},
+ {id:'v-ertegi',sec:'video',type:'video',t:'ЖИ-ертегі: «Мейірімді бұлт»',age:'3–4 жас',goal:'Мейірімділікке тәрбиелеу, тыңдау мәдениеті.',tools:'Экран.',rule:'Ертегіден кейін сұрақтар: «Бұлт кімге көмектесті? Сен кімге көмектестің?» Қолдануға болатын сабақ: көркем әдебиет.'},
+ {id:'a-amandasu',sec:'auen',type:'audio',t:'«Амандасу әні»',age:'3–4 жас',goal:'Таңғы жиында көңіл күй көтеру, амандасу мәдениеті.',tools:'Динамик.',rule:'Таңғы шеңберде шырқалады; әр жолда балалар қимылмен амандасады.',tune:[[60,1],[64,1],[67,1],[67,1],[69,1],[67,1],[64,2],[62,1],[65,1],[64,1],[62,1],[60,3]],lyr:'Қайырлы таң, күн шуақ,\nҚайырлы таң, досым-ау!\nҚол алысып, күлейік,\nБірге ойнап, білейік!'},
+ {id:'a-sergitu',sec:'auen',type:'audio',t:'«Сергіту сәті» әуені',age:'4–5 жас',goal:'Сабақ арасында демалу, қимыл үйлесімділігі.',tools:'Динамик; кең орын.',rule:'Әуен ойнап тұрғанда қимыл жасалады, тоқтағанда балалар «мүсін» болып қатып қалады.',tune:[[67,.5],[67,.5],[72,1],[67,.5],[64,.5],[67,1],[69,.5],[71,.5],[72,1],[67,1],[64,.5],[62,.5],[60,2]]},
+ {id:'a-qoshtasu',sec:'auen',type:'audio',t:'«Қоштасу әні»',age:'3–4 жас',goal:'Күнді жылы көңіл күймен аяқтау.',tools:'Динамик.',rule:'Күн соңында шеңберде орындалады; балалар бір-біріне қол бұлғайды.',tune:[[67,1],[65,1],[64,1],[62,1],[60,2],[64,1],[62,1],[60,3]],lyr:'Сау бол, досым, сау бол,\nЕртең тағы кездесеміз.\nКүлкің әрқашан болсын,\nЖақсы түс көр, ұйықта тез!'},
+ {id:'f-shaqyru',sec:'family',type:'family',t:'Шақыру: ата-аналар жиналысы',age:'Барлық топтар',goal:'Ата-аналарды жиналысқа жылы шақыру.',tools:'Мессенджер немесе басылған билет.',rule:'Төмендегі үлгіні өз күніңізге, уақытыңызға сай өзгертіп, мәтінін көшіріп жіберіңіз.',inv:1},
+ {id:'f-oiyn',sec:'family',type:'family',t:'Отбасылық ойын: «Үйдегі пішіндер»',age:'4–5 жас',goal:'Үйде баламен бірге пішіндерді табу.',tools:'Үйдегі заттар.',rule:'Ата-ана пішінді атайды – бала үйден сол пішіндес 3 зат табады. Ең көп тапқан – «пішін шебері».'},
+ {id:'f-kenes',sec:'family',type:'guide',t:'Кеңес: баламен күнделікті сөйлесу',age:'Барлық топтар',goal:'Баланың сөйлеуін үйде қолдау.',tools:'Тек уақыт пен ықылас.',rule:'Күніне 10 минут экрансыз әңгіме; «иә/жоқ» емес, ашық сұрақтар қойыңыз: «Бүгін не қызық болды?»; баланың сөзін бөлмей тыңдаңыз; оқылған ертегіні бала өзі қайта айтып берсін.'},
+ {id:'f-challenge',sec:'family',type:'family',t:'«Бірге ойнайық!» челлендж: отбасылық ертегі',age:'5–6 жас',goal:'Ата-ана мен баланың бірлескен шығармашылығы.',tools:'Қағаз, бояу, телефон.',rule:'Бір апта ішінде отбасымен шағын ертегі ойлап, 3 суретін салыңыз. Суреттерді тәрбиешіге жіберіңіз (бала бетінсіз, ата-ана келісімімен).'},
+ {id:"e-place",sec:"akyldy",type:'game',t:"«Қиып жапсыр: көлеңкесін тап»",age:"3–4 жас",goal:"Затты көлеңкесімен, пішінмен, түспен сәйкестендіру; зейін мен көру қабылдауын дамыту.",tools:"Интерактивті тақта немесе планшет.",rule:"10 деңгей: көкөністер, жәндіктер, орман аңдары, теңіз тіршілігі, тасбақаның пішіндері, құстар үйшігі (түс), көкөніс тілімдері, жемістер себеті, хайуанаттар, тропикалық орман. Суретті сүйреп немесе басып таңдап, өз көлеңкесіне апарады. Бала әр затты атап айтады.",ext:"games.html#place",th:"forest_scene.webp"},
+ {id:"e-waste",sec:"akyldy",type:'game',t:"«Қалдықты сұрыпта»",age:"5–6 жас",goal:"Заттарды белгісі бойынша топтастыру; экологиялық мәдениет негіздері.",tools:"Экран; үйде немесе топта төрт түсті қорап.",rule:"12 қалдықты қағаз, пластик, шыны және басқа қалдықтар жәшігіне сұрыптайды. Кейін топта нақты заттармен қайталау ұсынылады.",ext:"games.html#waste",th:"♻️"},
+ {id:"e-seasons",sec:"akyldy",type:'game',t:"«Жыл мезгілдері»",age:"4–5 жас",goal:"Жыл мезгілдерінің белгілерін тану, суретті мезгілмен сәйкестендіру.",tools:"Экран; мезгіл суреттері.",rule:"22 суретті қыс, көктем, жаз, күз ағаштарына апарады. Әр суреттен кейін: «Неге бұл қыс?» деп сұрау.",ext:"games.html#seasons",th:"season_au.webp"},
+ {id:"e-habitat",sec:"akyldy",type:'game',t:"«Кім қайда мекендейді?»",age:"4–5 жас",goal:"Жануарларды мекенімен сәйкестендіру: ферма, орман, теңіз, мұзды өлке.",tools:"Экран; жануар ойыншықтары.",rule:"16 жануарды өз мекеніне орналастырады. Соңында бір жануар туралы 2 сөйлем айту.",ext:"games.html#habitat",th:"hab_c_sea.webp"},
+ {id:"e-homes",sec:"akyldy",type:'game',t:"«Кім қайда тұрады?»",age:"3–4 жас",goal:"Жануарлардың үйін тану: ін, ұя, омарта, аквариум, жер асты.",tools:"Экран.",rule:"Жануарды көріп, оның үйін таңдайды. Дұрыс жауаптан кейін: «Қоян інде тұрады» деп бірге қайталау.",ext:"games.html#homes",th:"home_hive.webp"},
+ {id:"e-growth",sec:"akyldy",type:'game',t:"«Қызанақ қалай өседі?»",age:"5–6 жас",goal:"Өсімдіктің өсу кезеңдерін ретімен орналастыру; себеп-салдарды түсіну.",tools:"Экран; тұқым, топырақ, құмыра (тәжірибе үшін).",rule:"4, 6 немесе 8 кезеңді тұқымнан жеміске дейін ретімен таңдайды. Кейін топта нақты тұқым егіп, бақылау күнделігін жүргізу.",ext:"games.html#growth",th:"grow_8.webp"},
+ {id:"e-memory",sec:"akyldy",type:'game',t:"«Маскалар: жұбын тап»",age:"4–5 жас",goal:"Есте сақтау мен зейінді дамыту.",tools:"Экран; ертегі маскалары.",rule:"4, 6 немесе 8 жұп карточканы ашып, бірдей маскаларды табады. Табылған кейіпкерді атап, ертегіде кім болғанын еске түсіреді.",ext:"games.html#memory",th:"mask_earth.webp"},
+ {id:"e-riddle",sec:"soilei",type:'game',t:"«Жұмбақ шешейік»",age:"5–6 жас",goal:"Жұмбақты тыңдап түсіну, сөздік қорды байыту, ойлау.",tools:"Экран.",rule:"Тәрбиеші жұмбақты оқиды, бала үш суреттің ішінен жауабын таңдайды. 25 жұмбақтың 8-і кездейсоқ беріледі.",ext:"games.html#riddle",th:"rid_bee.webp"},
+ {id:"e-babies",sec:"soilei",type:'game',t:"«Кімнің төлі?»",age:"3–4 жас",goal:"Төл атауларын үйрену: бұзау, құлын, қозы, лақ.",tools:"Экран; үй жануарларының ойыншықтары.",rule:"Анасын көріп, оның төлін таңдайды. Әр жауаптан кейін: «Сиырдың төлі — бұзау» деп толық сөйлеммен қайталау.",ext:"games.html#babies",th:"baby_horse.webp"},
+ {id:"e-studio",sec:"kiial",type:'game',t:"«Шеберхана: боя да сыз»",age:"4–5 жас",goal:"Түсті ажырату, ұсақ моторика, шығармашылық.",tools:"Интерактивті тақта немесе планшет; қағаз бен қарындаш.",rule:"9 сурет: бояу шелегімен ақ жерді бояу немесе үзік сызық бойымен саусақпен жүргізу. «Дайын!» батырмасынан кейін келесі суретке өтеді.",ext:"games.html#studio",th:"paint_turtle_t.webp"},
+ {id:"e-eco",sec:"meirim",type:'game',t:"«Экобатыр»",age:"5–6 жас",goal:"Жақсы және жағымсыз әрекетті ажырату; табиғатқа қамқорлық.",tools:"Экран; жасыл және қызыл карточкалар.",rule:"Әр жағдайға «Дұрыс» немесе «Дұрыс емес» деп жауап береді. Балалар неге солай екенін түсіндіреді.",ext:"games.html#eco",th:"🦸"},
+ {"id": "song-1", "sec": "auen", "type": "audio", "t": "«Бақшамызға қош келдіңіз»", "age": "3–6 жас", "goal": "Таңғы қарсы алу кезінде жағымды көңіл күй тудыру, балабақшаға деген жылы сезімді арттыру.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Таңғы қабылдау, таңғы шеңбер, мерекелік ашылу.", "src": "audio/s1.mp3", "cover": "audio/s1.webp", "dur": "0:58", "cat": "Балабақша туралы"},
+ {"id": "song-2", "sec": "auen", "type": "audio", "t": "«Балабақшам, бақ мекен»", "age": "3–6 жас", "goal": "Балабақшаны сүюге, достыққа тәрбиелеу.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Таңғы шеңбер, ырғақтық қимылдар, ашық сабақтың басы.", "src": "audio/s2.mp3", "cover": "audio/s2.webp", "dur": "0:52", "cat": "Балабақша туралы"},
+ {"id": "song-3", "sec": "auen", "type": "audio", "t": "«Балабақша — бақшамыз»", "age": "4–6 жас", "goal": "Ұлттық әуенмен балабақша туралы ән айту; домбыра үнімен таныстыру.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Музыка ҰІӘ, ұлттық мереке, би қимылдары.", "src": "audio/s3.mp3", "cover": "audio/s3.webp", "dur": "1:32", "cat": "Балабақша туралы"},
+ {"id": "song-4", "sec": "auen", "type": "audio", "t": "«Біздің бақша»", "age": "3–6 жас", "goal": "Топтық ұйымшылдық, бірге ән айту дағдысы.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Таңғы жиын, топтық мереке, сергіту сәті.", "src": "audio/s4.mp3", "cover": "audio/s4.webp", "dur": "1:31", "cat": "Балабақша туралы"},
+ {"id": "song-5", "sec": "auen", "type": "audio", "t": "«Алтын күз»", "age": "4–6 жас", "goal": "Күздің белгілерін әнмен бекіту; сахнада өнер көрсету.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: «Алтын күз» мерекесі, жыл мезгілдері тақырыбындағы сабақ.", "src": "audio/s5.mp3", "cover": "audio/s5.webp", "dur": "1:10", "cat": "Күз мерекесі"},
+ {"id": "song-6", "sec": "auen", "type": "audio", "t": "«Берекелі алтын күз»", "age": "3–5 жас", "goal": "Күздің берекесі — жеміс-жидек, егін туралы түсінік беру.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: «Алтын күз» мерекесі, көкөніс пен жеміс тақырыбы.", "src": "audio/s6.mp3", "cover": "audio/s6.webp", "dur": "2:05", "cat": "Күз мерекесі"},
+ {"id": "song-7", "sec": "auen", "type": "audio", "t": "«Су – біздің досымыз»", "age": "3–5 жас", "goal": "Суды үнемдеуге, табиғатты қорғауға тәрбиелеу.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Экология тақырыбындағы сабақ, қол жуу алдындағы сергіту сәті.", "src": "audio/s7.mp3", "cover": "audio/s7.webp", "dur": "0:57", "cat": "Табиғат пен су"},
+ {"id": "song-8", "sec": "auen", "type": "audio", "t": "«Мөлдір су»", "age": "3–4 жас", "goal": "Судың маңызын қарапайым тілмен түсіндіру.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Жаратылыстану сабағы, су тәжірибелерінің алды.", "src": "audio/s8.mp3", "cover": "audio/s8.webp", "dur": "0:43", "cat": "Табиғат пен су"},
+ {"id": "song-9", "sec": "auen", "type": "audio", "t": "«Жаңбыр, жаңбыр»", "age": "3–4 жас", "goal": "Табиғат құбылысымен таныстыру, қимылмен ән айту.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Сергіту сәті, серуенге шығар алдындағы әңгіме, «Күз» тақырыбы.", "src": "audio/s9.mp3", "cover": "audio/s9.webp", "dur": "0:34", "cat": "Табиғат пен су"},
+ {"id": "song-10", "sec": "auen", "type": "audio", "t": "«Еңбек – өмірдің кілті»", "age": "5–6 жас", "goal": "Еңбекті құрметтеуге, мамандықтарды бағалауға тәрбиелеу.", "tools": "Динамик немесе интерактивті тақта.", "rule": "Қолдану: Мамандықтар туралы сабақ, еңбек апталығы, ашық сабақ.", "src": "audio/s10.mp3", "cover": "audio/s10.webp", "dur": "1:49", "cat": "Еңбек тәрбиесі"},
+ {"id": "vid-1", "sec": "video", "type": "video", "t": "«Балдаурен» телеарнасы: 1-шығарылым", "age": "4–6 жас", "goal": "Байланыстырып сөйлеуге, сахнада сөйлеу мәдениетіне баулу; жүргізуші рөлімен таныстыру.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: Сөйлеуді дамыту, «Мамандықтар» тақырыбы (жүргізуші), рөлдік ойын «Біз — тележүргізушіміз».", "vsrc": "video/v1.mp4", "cover": "video/v1.webp", "dur": "0:22", "cat": "Балалар телеарнасы"},
+ {"id": "vid-2", "sec": "video", "type": "video", "t": "«Балдаурен» телеарнасы: 2-шығарылым", "age": "4–6 жас", "goal": "Жаңалықты қысқа айтып беру дағдысы, тыңдау мәдениеті.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: Сөйлеуді дамыту, таңғы жиын, ашық сабақтың кіріспесі.", "vsrc": "video/v2.mp4", "cover": "video/v2.webp", "dur": "0:37", "cat": "Балалар телеарнасы"},
+ {"id": "vid-3", "sec": "video", "type": "video", "t": "«Туған өлкем — Қазалы»", "age": "5–6 жас", "goal": "Туған өлкенің көрікті жерлерімен таныстыру, елжандылыққа тәрбиелеу.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: Қоршаған ортамен танысу, «Менің Отаным — Қазақстан» тақырыбы, ашық сабақ.", "vsrc": "video/v3.mp4", "cover": "video/v3.webp", "dur": "1:04", "cat": "Туған өлке"},
+ {"id": "vid-4", "sec": "video", "type": "video", "t": "«Алтын күз ханшайымы»", "age": "3–6 жас", "goal": "Күздің сұлулығы мен белгілерін бейнелі түрде көрсету.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: «Алтын күз» мерекесі, жыл мезгілдері тақырыбы, сурет салу алдындағы әсер.", "vsrc": "video/v4.mp4", "cover": "video/v4.webp", "dur": "0:33", "cat": "Тақырыптық анимация"},
+ {"id": "vid-5", "sec": "video", "type": "video", "t": "«Күзгі саябақта»", "age": "4–6 жас", "goal": "Еңбекті құрметтеуге, үлкендерге көмектесуге тәрбиелеу.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: Мейірімділік пен еңбек тақырыбы, «Мамандықтар» (аула сыпырушы), күз тақырыбы.", "vsrc": "video/v5.mp4", "cover": "video/v5.webp", "dur": "2:14", "cat": "Тақырыптық анимация"},
+ {"id": "vid-6", "sec": "video", "type": "video", "t": "«Робот досыммен сергіту сәті»", "age": "3–6 жас", "goal": "Қимылды қайталау, зейін мен үйлесімділікті дамыту.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: Сабақ арасындағы сергіту сәті, таңғы жаттығу.", "vsrc": "video/v6.mp4", "cover": "video/v6.webp", "dur": "1:36", "cat": "Сергіту сәті"},
+ {"id": "vid-7", "sec": "video", "type": "video", "t": "«Моншақ»: 1-бөлім", "age": "3–5 жас", "goal": "Ұлттық бұйым — моншақпен таныстыру, түстерді ажырату.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: Ұлттық құндылықтар, «Моншақ тізу» практикалық жұмысы, санау.", "vsrc": "video/v7.mp4", "cover": "video/v7.webp", "dur": "0:21", "cat": "Тақырыптық анимация"},
+ {"id": "vid-8", "sec": "video", "type": "video", "t": "«Моншақ»: 2-бөлім", "age": "3–5 жас", "goal": "Ұлттық киім мен әшекейлерге қызығушылық ояту.", "tools": "Интерактивті тақта немесе экран, динамик.", "rule": "Қолдануға болатын сабақ: Ұлттық құндылықтар, сурет салу немесе мүсіндеу алдында.", "vsrc": "video/v8.mp4", "cover": "video/v8.webp", "dur": "0:23", "cat": "Тақырыптық анимация"},
+ {"id": "vid-6q", "sec": "qozgalys", "type": "video", "t": "«Робот досыммен сергіту сәті»", "age": "3–6 жас", "goal": "Қимылды қайталау, зейін мен үйлесімділікті дамыту.", "tools": "Интерактивті тақта немесе экран, кең орын.", "rule": "Балалар экрандағы робот қимылдарын қайталайды. Сабақ арасында 1–2 минут сергіту үшін қолданылады.", "vsrc": "video/v6.mp4", "cover": "video/v6.webp", "dur": "1:36", "cat": "Сергіту сәті"},
+ {"id": "e-shapes3d", "sec": "akyldy", "type": "game", "t": "«3D пішіндерді тап»", "age": "3–6 жас", "goal": "Геометриялық денелерді тану: шар, текше, цилиндр, конус, пирамида; түсті ажырату.", "tools": "Интерактивті тақта немесе планшет; нақты пішіндер жиынтығы.", "rule": "Айналып тұрған 3D пішіндердің ішінен аталғанын табады. 3–4 жас: 3 пішін; 4–5 жас: 4 пішін; 5–6 жас: пішін мен түс бірге («Қызыл текшені тап»). Пішіндерді саусақпен айналдырып қарауға болады.", "ext": "games.html#shapes3d", "th": "🔷"},
+ {"id": "e-tower3d", "sec": "akyldy", "type": "game", "t": "«3D мұнара құрастыр»", "age": "3–6 жас", "goal": "Үлгі бойынша құрастыру, түстердің ретін есте сақтау.", "tools": "Экран; нақты текшелер.", "rule": "Үлгідегі мұнараны төменнен жоғары қарай түсті текшелерден қайталайды. 3–4 жас: 3 қабат; 4–5 жас: 4; 5–6 жас: 5 қабат, өлшемдері әртүрлі. Кейін нақты текшелермен қайталау.", "ext": "games.html#tower3d", "th": "🏰"},
+ {"id": "e-paint3d", "sec": "kiial", "type": "game", "t": "«3D бояу»", "age": "3–6 жас", "goal": "Түсті таңдау, шығармашылық қиял, көлемді затты әр жағынан көру.", "tools": "Интерактивті тақта немесе планшет.", "rule": "Қардан адамды, киіз үйді, машинаны немесе зымыранды өз түсімен бояйды; заттарды айналдырып, артқы жағын да бояйды. Модельдер саны жасқа қарай көбейеді.", "ext": "games.html#paint3d", "th": "⛄"},
+ {"id": "e-puzzle", "sec": "kiial", "type": "game", "t": "«Пазл: суретті құрастыр»", "age": "3–6 жас", "goal": "Бүтін мен бөлікті байланыстыру, көру қабылдауы, табандылық.", "tools": "Экран; қағаз пазл.", "rule": "Қиылған суретті бөліктерден жинайды: 3–4 жас — 4 бөлік, 4–5 жас — 6, 5–6 жас — 9 (12 бөлікті де таңдауға болады). Тақтада сурет жеңіл көрінеді, жас үлкейген сайын бозарады.", "ext": "games.html#puzzle", "th": "🧩"},
+ {"id": "e-applique", "sec": "kiial", "type": "game", "t": "«Аппликация: пішіндерден сурет»", "age": "3–6 жас", "goal": "Пішін мен өлшемді ажырату, қиып жапсыру дағдысы, түс таңдау.", "tools": "Экран; түрлі түсті қағаздан қиылған пішіндер, желім.", "rule": "Пішіндерді өз орнына жапсырып, үй, ағаш, машина, зымыран, гүл, робот немесе пойыз құрастырады. Сосын пішінді басып, түсін өзгертеді. Кейін дәл осындай аппликацияны қағаздан жасайды.", "ext": "games.html#applique", "th": "✂️"},
+ {"id": "e-sticker", "sec": "kiial", "type": "game", "t": "«Өз әлеміңді құрастыр»", "age": "3–6 жас", "goal": "Еркін шығармашылық, сюжет құрау, байланыстырып сөйлеу.", "tools": "Интерактивті тақта немесе планшет.", "rule": "Фон таңдап (ферма, орман, теңіз, киіз үй, мезгілдер), жануарлар мен заттарды жапсырады, үлкейтеді, аударады. Соңында өз әлемі туралы 3–4 сөйлеммен әңгімелейді.", "ext": "games.html#sticker", "th": "hab_c_farm.webp"},
+ {"id": "e-place-k", "sec": "kiial", "type": "game", "t": "«Қиып жапсыр: көлеңкесін тап»", "age": "3–6 жас", "goal": "Қиып жапсыру, сәйкестендіру, ұсақ моторика.", "tools": "Экран; қағаз, қайшы, желім.", "rule": "Суретті өз көлеңкесіне немесе орнына жапсырады. Деңгейлер жасқа қарай беріледі: 3–4 жас — көкөніс, тасбақа, құстар, себет; 5–6 жас — барлық 10 деңгей.", "ext": "games.html#place", "th": "forest_scene.webp"},
+ {"id": "e3-balloons", "sec": "akyldy", "type": "game", "t": "«Түсін тап: шарларды жар»", "age": "3–6 жас", "goal": "Түстерді ажырату және атау, көз бен қол үйлесімділігі.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Ұшып бара жатқан 3D шарлардың ішінен аталған түсті шарды басып жарады; түс бірнеше шардан кейін ауысады. 3–4 жас: 3 түс, 6 шар; 4–5 жас: 5 түс, 9 шар; 5–6 жас: 7 түс (қызғылт сары, қызғылт қоса), 12 шар, түс жиі ауысады.", "ext": "games.html#balloons3d", "th": "🎈"},
+ {"id": "e3-odd", "sec": "akyldy", "type": "game", "t": "«Артығын анықта»", "age": "3–6 жас", "goal": "Заттарды белгісі бойынша салыстыру, логикалық ойлау, өз ойын дәлелдеу.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Айналып тұрған 3D заттардың ішінен артығын табады, ойын себебін көрсетеді. 3–4 жас: бір ғана белгі (түс немесе пішін); 4–5 жас: бір белгі бойынша, екіншісі «кедергі» (түстері әртүрлі, пішіні артық); 5–6 жас: 5 зат, өлшем бойынша да.", "ext": "games.html#odd3d", "th": "🧩"},
+ {"id": "e3-count", "sec": "akyldy", "type": "game", "t": "«Пішіндер қаласы: санап көр»", "age": "3–6 жас", "goal": "Санау, санды затпен сәйкестендіру, таңдап санау.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "3D қаладағы үйлерді, ағаштарды немесе машиналарды санайды. 3–4 жас: 1–3 зат; 4–5 жас: 1–5, басқа заттар араласады; 5–6 жас: 3–9 зат, бірнеше түрдің ішінен тек аталғанын санайды. Дұрыс жауаптан кейін заттар бір-бірлеп секіріп, бірге санайды.", "ext": "games.html#count3d", "th": "🏘️"},
+ {"id": "e3-animals", "sec": "soilei", "type": "game", "t": "«Жануарды таны»", "age": "3–6 жас", "goal": "Сөздік қорды байыту, сипаттаманы тыңдап түсіну, жануар атын дұрыс айту.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Сипаттаманы тыңдап («Қанаты бар, ұшады...»), 3D жануарлардың ішінен табады; табылған жануар өзінше қозғалады, бала атын дауыстап айтады. 3–4 жас: 3 жануар, атымен; 4–5 жас: 4 жануар, сипаттамамен; 5–6 жас: 5 жануар.", "ext": "games.html#animals3d", "th": "🐰"},
+ {"id": "e3-changed", "sec": "kiial", "type": "game", "t": "«Не өзгерді?»", "age": "3–6 жас", "goal": "Зейін, есте сақтау, бақылау қабілеті.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Заттарды есте сақтайды, сосын «көзін жұмады»; бір зат өзгереді. 3–4 жас: 3 зат, түсі өзгереді, 7 секунд; 4–5 жас: 4 зат, түсі немесе пішіні; 5–6 жас: 5 зат, еркін орналасқан, орны да ауысуы мүмкін, 5 секунд.", "ext": "games.html#changed3d", "th": "🔍"},
+ {"id": "e3-builder", "sec": "kiial", "type": "game", "t": "«3D конструктор: өз қалаңды сал»", "age": "3–6 жас", "goal": "Кеңістікті қабылдау, құрастыру, шығармашылық қиял, әңгімелеу.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Текше, цилиндр, шатыр, шар, конус, ағашты таңдап, түсін беріп, 3D алаңға қояды; бөлшектерді бір-бірінің үстіне қоюға болады. Қаланы айналдырып қарап, соңында ол туралы әңгімелейді.", "ext": "games.html#builder3d", "th": "🏗️"},
+ {"id": "e3-emotions", "sec": "meirim", "type": "game", "t": "«Көңіл күйді тап»", "age": "3–6 жас", "goal": "Эмоцияларды тану және атау, жанашырлық.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "3–4 жас: 3D баланың бетіне қарап, 3 сөздің ішінен көңіл күйін табады; 4–5 жас: 4 эмоция (таңданған қоса); 5–6 жас: жағдаятты тыңдап («Арманның шары ұшып кетті...»), 4 беттің ішінен сәйкесін табады, кейін «Оны қалай жұбатамыз?» деп талқылайды.", "ext": "games.html#emotions3d", "th": "😊"},
+ {"id": "e3-help", "sec": "meirim", "type": "game", "t": "«Досыңа көмектес»", "age": "3–6 жас", "goal": "Көмектесуге, қамқорлыққа тәрбиелеу; топтастыру.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Аюдың шашылған ойыншықтарын қорапқа жинап, оны қуантады. 3–4 жас: 4 ойыншық, бір қорап; 4–5 жас: 6 ойыншық, түсі бойынша екі қорапқа; 5–6 жас: 9 ойыншық, пішіні бойынша үш қорапқа.", "ext": "games.html#help3d", "th": "🧸"},
+ {"id": "e3-bunny", "sec": "qozgalys", "type": "game", "t": "«Қоянша секір»", "age": "3–6 жас", "goal": "Реакция жылдамдығы, ырғақ сезімі; экранмен бірге нақты секіру.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Кедергі жақындағанда «Секір!» батырмасын басады (немесе бос орын пернесін) — балалар да орнынан секіреді. 3–4 жас: 6 кедергі, баяу; 4–5 жас: 10; 5–6 жас: 14, жылдам, кейбір кедергі биік.", "ext": "games.html#bunny3d", "th": "🐇"},
+ {"id": "e3-moves", "sec": "qozgalys", "type": "game", "t": "«Қимылды қайтала»", "age": "3–6 жас", "goal": "Қимылды көру арқылы қайталау, есте сақтау, үйлесімділік.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "3D робот қимылдарды ретімен көрсетеді; балалар оларды өздері жасап, сосын сол ретпен батырмаларды басады. 3–4 жас: 2 қимыл, аттары жазылады; 4–5 жас: 3 қимыл; 5–6 жас: 4 қимыл, аттары жасырын.", "ext": "games.html#moves3d", "th": "🤖"},
+ {"id": "e3-runner", "sec": "qozgalys", "type": "game", "t": "«Кедергіден өт»", "age": "3–6 жас", "goal": "Оң мен солды ажырату, кеңістікте бағдарлау, реакция.", "tools": "Интерактивті тақта, планшет немесе компьютер.", "rule": "Қоянша жолмен жүгіреді; «Солға» және «Оңға» батырмаларымен (немесе бағыттауыш пернелермен, саусақпен сүйреп) кедергіден айналып, жұлдыз жинайды. Балалар бағытты дауыстап айтып, денесімен де бұрылады. Ұзақтығы мен жылдамдығы жасқа қарай: 35 / 45 / 55 секунд.", "ext": "games.html#runner3d", "th": "🏃"},
+ {"id": "dx-forest", "sec": "akyldy", "type": "game", "t": "«3D саяхат: орман және үй жануарлары»", "age": "3–6 жас", "goal": "Жабайы және үй жануарларын ажырату, олардың мекенімен таныстыру; сөздік қорды байыту.", "tools": "Интерактивті тақта немесе компьютер (интернет қажет); қаласаңыз — планшет пен VR көзілдірігі.", "rule": "Delightex Edu платформасындағы 3D сахнаны ашып, балалармен бірге орманды аралайды: жануарды тауып, атын атайды, ол орманда ма, үйде ме тұратынын айтады. 3–4 жас: жануарды тауып атау; 4–5 жас: «Орманда ма, үйде ме?» деп топтау; 5–6 жас: таңдаған жануары туралы 2–3 сөйлем құрау. Планшетте Delightex Edu қолданбасы арқылы VR режимінде көруге болады.", "ext": "https://edu.delightex.com/JJN-NPW", "th": "🌲", "embed": "https://edu.delightex.com/JJN-NPW"}
+];
+const mine=()=>store.get('ba-mine',[]);
+const all=()=>[...BASE,...mine()];
+
+/* ---------- mini games ---------- */
+const COL=[['Қызыл','#ef4444'],['Көк','#3b82f6'],['Сары','#facc15'],['Жасыл','#22c55e'],['Қызғылт сары','#fb923c'],['Күлгін','#a855f7']];
+const shuf=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+const pick=(a,n)=>shuf(a).slice(0,n);
+const sh=(k,c)=>({c:`<circle cx="36" cy="36" r="26" fill="${c}"/>`,s:`<rect x="12" y="12" width="48" height="48" rx="6" fill="${c}"/>`,t:`<path d="M36 8l30 54H6z" fill="${c}"/>`,h:`<path d="M36 62S8 46 8 26a14 14 0 0128-6 14 14 0 0128 6c0 20-28 36-28 36z" fill="${c}"/>`}[k]);
+const sv=b=>`<svg viewBox="0 0 72 72" aria-hidden="true">${b}</svg>`;
+const face=e=>{const m={joy:'M22 44q14 14 28 0',sad:'M22 52q14-12 28 0',ang:'M24 50h24',sur:''}[e];return sv(`<circle cx="36" cy="36" r="32" fill="#ffd66b"/>${e==='ang'?'<path d="M18 22l12 6M54 22l-12 6" stroke="#1d2a44" stroke-width="4" stroke-linecap="round"/>':''}<circle cx="25" cy="32" r="4.5" fill="#1d2a44"/><circle cx="47" cy="32" r="4.5" fill="#1d2a44"/>${e==='sur'?'<ellipse cx="36" cy="50" rx="7" ry="9" fill="#1d2a44"/>':`<path d="${m}" stroke="#1d2a44" stroke-width="4.5" fill="none" stroke-linecap="round"/>`}`)};
+const ANIM=[['Мысық','«Мияу» дейді, тышқан аулайды',sv('<circle cx="36" cy="40" r="22" fill="#fb923c"/><path d="M16 26l4-18 12 12M56 26l-4-18-12 12" fill="#fb923c"/><circle cx="28" cy="38" r="3" fill="#1d2a44"/><circle cx="44" cy="38" r="3" fill="#1d2a44"/><path d="M33 46h6l-3 3z" fill="#1d2a44"/>')],['Сиыр','Бізге сүт береді',sv('<ellipse cx="36" cy="40" rx="24" ry="22" fill="#fff" stroke="#1d2a44" stroke-width="2"/><ellipse cx="36" cy="50" rx="13" ry="8" fill="#f9a8d4"/><circle cx="26" cy="32" r="3" fill="#1d2a44"/><circle cx="46" cy="32" r="3" fill="#1d2a44"/><path d="M14 22l-6-8M58 22l6-8" stroke="#a16207" stroke-width="4" stroke-linecap="round"/><circle cx="48" cy="22" r="5" fill="#1d2a44"/>')],['Балық','Суда жүзеді, сөйлемейді',sv('<ellipse cx="32" cy="36" rx="22" ry="14" fill="#3b82f6"/><path d="M52 36l14-12v24z" fill="#3b82f6"/><circle cx="22" cy="32" r="3" fill="#fff"/>')],['Құс','Қанаты бар, ұшады',sv('<circle cx="34" cy="38" r="20" fill="#facc15"/><circle cx="28" cy="32" r="3" fill="#1d2a44"/><path d="M14 36l-10 4 10 3z" fill="#fb923c"/><path d="M36 38q14-4 20 8-12 2-20-8z" fill="#eab308"/>')]];
+const GAMES={
+ color(){const o=pick(COL,4),a=o[0];return{q:`${a[0]} түсті шеңберді тап!`,o:shuf(o.map(c=>({h:sv(sh('c',c[1])),l:'',ok:c===a})))}},
+ odd(){const ks=pick(['c','s','t','h'],2),c=pick(COL,1)[0][1],it=[...Array(3)].map(()=>({h:sv(sh(ks[0],c)),ok:false}));it.push({h:sv(sh(ks[1],c)),ok:true});return{q:'Қайсысы артық?',o:shuf(it).map(x=>({...x,l:''}))}},
+ count(){const n=1+Math.floor(Math.random()*5),st='<path d="M0-9l2.6 5.6 6 .7-4.5 4.2 1.2 6L0 4.4-5.3 7.5l1.2-6L-8.6-2.7l6-.7z" fill="#facc15" stroke="#ca8a04"/>';const pos=[[18,20],[54,20],[36,36],[18,54],[54,54]];const pic=`<svg viewBox="0 0 72 72" style="width:150px;height:150px">${pos.slice(0,n).map(p=>`<g transform="translate(${p[0]} ${p[1]}) scale(1.3)">${st}</g>`).join('')}</svg>`;const nums=shuf([n,...pick([1,2,3,4,5].filter(x=>x!==n),3)]);return{q:'Жұлдызша нешеу?',pic,o:nums.map(x=>({h:`<span style="font:800 44px Rubik">${x}</span>`,l:'',ok:x===n}))}},
+ emo(){const E=[['joy','Қуанышты'],['sad','Мұңды'],['ang','Ашулы'],['sur','Таңданған']],a=pick(E,1)[0];return{q:'Бұл досымыздың көңіл күйі қандай?',pic:`<div style="width:140px;margin:0 auto">${face(a[0])}</div>`,o:shuf(E).map(e=>({h:'',l:e[1],ok:e===a}))}},
+ animal(){const a=pick(ANIM,1)[0];return{q:`${a[1]}. Бұл кім?`,o:shuf(ANIM).map(x=>({h:x[2],l:x[0],ok:x===a}))}}
+};
+function runGame(el,kind){let sc=0,rd=0;const N=5;
+ const draw=()=>{if(rd>=N){el.innerHTML=`<div class="q">Жарайсың! ${sc} / ${N}</div><div class="stars" aria-label="${sc} жұлдыз">${'★'.repeat(sc)}${'☆'.repeat(N-sc)}</div><p>Енді экраннан нақты затқа көшейік: тапсырманы топта қайталаңдар.</p><button class="btn" id="again">Қайта ойнау</button>`;el.querySelector('#again').onclick=()=>{sc=0;rd=0;draw()};return}
+  const g=GAMES[kind]();let done=false;
+  el.innerHTML=`<div class="q">${g.q}</div>${g.pic||''}<div class="opts">${g.o.map((o,i)=>`<button class="opt" data-i="${i}">${o.h}${o.l?`<span>${o.l}</span>`:''}</button>`).join('')}</div><div class="score"><span>Раунд ${rd+1} / ${N}</span><span class="stars">${'★'.repeat(sc)}</span></div>`;
+  el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(done)return;const o=g.o[b.dataset.i];if(o.ok){done=true;b.classList.add('ok');sc++;rd++;beep(true);setTimeout(draw,700)}else{b.classList.remove('no');void b.offsetWidth;b.classList.add('no');beep(false);if(!b._miss){b._miss=1}}});
+ };draw()}
+
+/* ---------- audio ---------- */
+let AC;const ac=()=>AC||(AC=new (window.AudioContext||window.webkitAudioContext)());
+function tone(m,t,d,ctx,vol=.18){const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.value=440*2**((m-69)/12);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d*.95);o.connect(g).connect(ctx.destination);o.start(t);o.stop(t+d)}
+function beep(ok){try{const c=ac(),t=c.currentTime;ok?[72,76,79].forEach((m,i)=>tone(m,t+i*.09,.2,c,.12)):tone(55,t,.25,c,.1)}catch(e){}}
+let playing=null;
+function playTune(tune,btn){try{const c=ac();if(playing){playing.forEach(clearTimeout);playing=null;document.querySelectorAll('[data-play]').forEach(b=>b.textContent='▶ Тыңдау');if(btn._on){btn._on=0;return}}
+ let t=c.currentTime+.05,beat=.42,tot=0;tune.forEach(([m,d])=>{tone(m,t,d*beat,c);t+=d*beat;tot+=d*beat});btn._on=1;btn.textContent='■ Тоқтату';playing=[setTimeout(()=>{btn._on=0;btn.textContent='▶ Тыңдау';playing=null},tot*1000+200)]}catch(e){toast('Дыбыс ойнатылмады')}}
+
+/* ---------- views ---------- */
+const zs=s=>`--z1:${s.z1};--z2:${s.z2}`;
+const card=m=>{const s=SM[m.sec]||SEC[0];return`<a class="mat" style="${zs(s)}" href="#m-${esc(m.id)}"><div class="k"><span class="tag">${esc(TYPES[m.type]||'Материал')}</span><span class="tag">${esc(m.age)}</span>${m.own?'<span class="tag">менікі</span>':''}${m.play||m.tune||m.ext||m.src||m.vsrc?'<span class="tag">▶ ойнатылады</span>':''}${m.dur?`<span class="tag">${esc(m.dur)}</span>`:''}</div><h3>${esc(m.t)}</h3><p>${esc(m.goal)}</p></a>`};
+const zone=s=>`<a class="zone" href="#s-${s.id}" style="${zs(s)}"><img src="${s.img}" alt="" loading="lazy"><div><h3>${s.t}</h3><small>${s.n}-бөлім</small></div></a>`;
+const ph=(s,crumb,title,lead,extra='')=>`<div class="ph" style="${zs(s)}"><div class="ic"><img src="${s.img}" alt=""></div><div>${crumb}<h1 style="margin-top:6px">${title}</h1><p class="lead">${lead}</p>${extra}</div></div>`;
+const back=(h,t)=>`<a class="crumb" href="${h}">← ${t}</a>`;
+const SRCH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+
+function filterUI(id,secFixed){return`<div class="cat-tools"><input type="search" id="${id}q" placeholder="Керекті материалды іздеңіз…" aria-label="Іздеу">${secFixed?'':`<select id="${id}s" aria-label="Тақырып бойынша"><option value="">Тақырып бойынша: барлығы</option>${SEC.map(s=>`<option value="${s.id}">${s.n}. ${s.t}</option>`).join('')}</select>`}<select id="${id}a" aria-label="Жас тобы бойынша"><option value="">Жас тобы: барлығы</option>${AGES.map(a=>`<option>${a}</option>`).join('')}</select></div><div class="grid" id="${id}g"></div>`}
+function bindFilter(id,secFixed){const f=store.get('ba-f',{}),q=$('#'+id+'q'),s=$('#'+id+'s'),a=$('#'+id+'a');q.value=f.q||'';a.value=f.a||'';if(s)s.value=f.s||'';
+ const go=()=>{store.set('ba-f',{q:q.value,a:a.value,s:s?s.value:f.s});const qq=q.value.trim().toLowerCase(),ss=secFixed||(s&&s.value);const r=all().filter(m=>(!ss||m.sec===ss)&&(!a.value||m.age===a.value||m.age==='Барлық топтар')&&(!qq||(m.t+' '+m.goal+' '+m.rule).toLowerCase().includes(qq)));
+  $('#'+id+'g').innerHTML=r.length?r.map(card).join(''):'<div class="empty">Бұл сүзгі бойынша материал табылмады. Іздеу сөзін өзгертіп көріңіз.</div>'};
+ [q,a,s].forEach(e=>e&&e.addEventListener('input',go));go()}
+
+const V={
+home(){return[`<div class="hero"><div class="txt"><h1 class="ttl">БАЛА ӘЛЕМІ – <span class="ai">AI</span></h1>
+ <svg class="swoosh" viewBox="0 0 420 16" aria-hidden="true"><path d="M4 12Q210-4 416 10" stroke="url(#gg)" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+ <span class="pill">Тәрбиешінің цифрлық шығармашылық кеңістігі</span>
+ <div class="dots"><span>Ойын</span><span>Таным</span><span>Шығармашылық</span><span>Тәрбие</span><span>Ынтымақтастық</span></div></div>
+ <div class="art"><img src="img/hero.webp" alt="Қазақ ұлттық бас киімін киген ұл мен қыз робот-көмекшімен бірге планшеттен пішіндерді қарап отыр" width="1672" height="941"></div></div>
+ <div class="sw"><form class="search" id="hs" role="search"><label class="in">${SRCH}<input id="hq" placeholder="Керекті материалды іздеңіз…" aria-label="Іздеу"></label><span class="vs"></span>
+ <div class="sel"><select id="hsec" aria-label="Тақырып бойынша"><option value="">Тақырып бойынша</option>${SEC.map(s=>`<option value="${s.id}">${s.t}</option>`).join('')}</select></div>
+ <div class="sel"><select id="hage" aria-label="Жас тобы бойынша"><option value="">Жас тобы бойынша</option>${AGES.map(a=>`<option>${a}</option>`).join('')}</select></div>
+ <button class="gbtn" type="submit">${SRCH}Іздеу</button></form></div>`,
+`<div class="zones">${SEC.map(zone).join('')}</div>
+<section class="band"><div class="wrap two"><div><h2>Жобаның мақсаты</h2><p>Жасанды интеллект мүмкіндіктерін тиімді пайдалана отырып, балалардың даму бағыттарына сәйкес авторлық цифрлық-дидактикалық ресурстар қорын құру және оларды балабақшадағы оқу-тәрбие үдерісінде, ата-аналармен ынтымақтастықта қолдану.</p><p class="note">Алғашқы бес бөлім – мектепке дейінгі тәрбиелеу мен оқытудың бес даму бағыты. Қалған үшеуі – бейне, музыка және отбасымен ынтымақтастық.</p> <a class="gbtn" href="#catalog">Барлық материалдар</a> <a class="btn ghost" href="games.html" style="margin-left:6px">🎮 Интерактивті ойындар</a></div><div><h3>Негізгі міндеттер</h3><ol class="steps"><li>Бес даму бағытына сай дидактикалық ойындар әзірлеу</li><li>Ашық сабақтарға ЖИ-бейнематериалдар жинақтау</li><li>Тақырыптық әндер мен әуендер қорын жасау</li><li>Ата-аналарға шақыру, кеңес, отбасылық ойындар</li><li>Тәрбиешілерге қолдану нұсқаулықтарын жүйелеу</li><li>Тәжірибеде қолданып, нәтижесін бақылау</li></ol></div></div></section>`]},
+catalog(){return[`<div class="ph" style="--z1:#fff6dc;--z2:#ffe7a8"><div class="ic"><svg viewBox="0 0 24 24" width="60%" fill="none" stroke="#d9a23a" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div><div>${back('#home','Басты бет')}<h1 style="margin-top:6px">Барлық материалдар</h1><p class="lead">Тақырып, бөлім және жас тобы бойынша іздеңіз</p></div></div>`,`<section class="band"><div class="wrap">${filterUI('c')}</div></section>`]},
+sec(s){const pl=s.id==='auen'?playlist():s.id==='video'?vgrid():'';const fam=s.id==='family'?`<div class="sub-grid" style="${zs(s)}">${[['Шақыру әлемі','Жиналыс, мереке, ашық сабаққа шақыру билеттері.'],['Отбасылық ойын уақыты','Үйде баламен ойнауға арналған дамытушы ойындар.'],['Ата-аналарға кеңес','Тәрбие, сөйлеу және танымдық даму бойынша кеңестер.'],['Бірге ойнайық!','Ата-ана мен балаға ортақ тапсырмалар, челлендждер.'],['Отбасылық шығармашылық','Сурет, ертегі, қолөнер және бейне жасау идеялары.']].map(x=>`<div class="sub"><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join('')}</div>`:'';
+ return[ph(s,back('#home','Басты бет'),s.t,`${s.n}-бөлім · ${s.d}`,`<ul class="skills">${s.sk.map(k=>`<li>${k}</li>`).join('')}</ul>`),
+ `<section class="band" style="${zs(s)}"><div class="wrap">${pl}${fam}<h2>Материалдар</h2>${filterUI('x',s.id)}</div></section>`]},
+mat(m){const s=SM[m.sec]||SEC[0];let media;
+ if(m.vsrc)media=`<div class="media" style="padding:0;background:#000"><video controls playsinline preload="metadata" poster="${esc(m.cover)}" src="${esc(m.vsrc)}"></video></div><p class="note">${esc(m.cat)} · ${esc(m.dur)} · ЖИ көмегімен жасалған бейнематериал</p>`;
+ else if(m.src)media=`<div class="stage"><img src="${esc(m.cover)}" alt="" style="width:min(320px,100%);aspect-ratio:1;object-fit:cover;border-radius:24px;margin:0 auto 16px;display:block;box-shadow:0 10px 24px rgba(60,80,140,.2)"><div class="q">${esc(m.t)}</div><audio controls preload="metadata" src="${esc(m.src)}" style="width:100%"></audio><p class="note">${esc(m.cat)} · ${esc(m.dur)} · ЖИ көмегімен жасалған авторлық ән</p></div>`;
+ else if(m.embed&&CAN_EMBED)media=`<div class="media" style="padding:0;background:#000;aspect-ratio:4/3"><iframe src="${esc(m.embed)}" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope" allowfullscreen loading="lazy" title="${esc(m.t)}"></iframe></div><p style="margin-top:14px"><a class="gbtn" href="${esc(m.embed)}" target="_blank" rel="noopener">↗ Толық экранда ашу</a></p>`;
+ else if(m.ext)media=`<div class="stage" style="padding:0;overflow:hidden"><a href="${esc(m.ext)}" ${/^https?:/.test(m.ext)?'target="_blank" rel="noopener"':''} style="display:block;text-decoration:none">${/\.webp$/.test(m.th)?`<img src="eko/img/${esc(m.th)}" alt="" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">`:`<div style="aspect-ratio:4/3;display:grid;place-items:center;font-size:120px;background:#fff">${esc(m.th)}</div>`}<div style="padding:18px"><span class="gbtn">${/^https?:/.test(m.ext)?'↗ Сахнаны ашу':'▶ Ойынды ашу'}</span></div></a><p class="note" style="margin:0 0 16px">${/^https?:/.test(m.ext)?'Сахна Delightex Edu сайтында жаңа бетте ашылады (интернет қажет): '+esc(m.ext):'Ойын толық экранда ашылады.'}</p></div>`;
+ else if(m.play)media=`<div class="stage" id="stage"></div>`;
+ else if(m.type==='video')media=`<div class="media" id="vid"><div><svg viewBox="0 0 52 52" width="80">${IC.video}</svg><p style="margin:8px 0;font-weight:800">Бейне файлы әлі жүктелмеген</p><label class="gbtn">Бейнені құрылғыдан ашу<input type="file" accept="video/*" id="vf" hidden></label></div></div><p class="note">Файл осы браузерде ғана ашылады, сайтқа жүктелмейді.</p>`;
+ else if(m.tune)media=`<div class="stage"><div class="q">${esc(m.t)}</div><button class="gbtn" data-play>▶ Тыңдау</button>${m.lyr?`<h3 style="margin-top:20px">Ән мәтіні</h3><div class="lyrics">${esc(m.lyr)}</div>`:''}<p class="note">Әуен браузерде синтезатормен ойнатылады. Авторлық аудиофайл қосылғанда осы жерде тұрады.</p></div>`;
+ else if(m.inv)media=`<div class="inv" id="inv"><p style="margin:0">Құрметті ата-ана!</p><h3>Сізді шақырамыз</h3><p>«Балабақша мен отбасы – бір мақсатта» тақырыбындағы ата-аналар жиналысына келуіңізді сұраймыз.</p><p><b>Күні:</b> 5 желтоқсан, 17:30<br><b>Орны:</b> «Күншуақ» тобы</p><p style="margin:0">Сізді күтеміз!<br>Тәрбиеші</p></div><p style="text-align:center"><button class="btn ghost" id="cp">Мәтінін көшіру</button></p>`;
+ else media=`<div class="stage"><img src="${s.img}" alt="" style="width:150px;mix-blend-mode:multiply"><p style="font-weight:700">Бұл ойын экраннан тыс – нақты заттармен, карточкалармен және қозғалыспен өткізіледі.</p></div>`;
+ const fb=store.get('ba-fb',{})[m.id]||0;
+ return[ph(s,back('#s-'+s.id,s.t),esc(m.t),esc(TYPES[m.type]||'Материал')+' · '+esc(m.age)),
+ `<section class="band" style="${zs(s)}"><div class="wrap two"><div>${media}</div><div class="facts"><dl><dt>Материалдың атауы</dt><dd>${esc(m.t)}</dd><dt>Жас тобы</dt><dd>${esc(m.age)}</dd><dt>Мақсаты мен міндеттері</dt><dd>${esc(m.goal)}</dd><dt>Қажетті құралдар</dt><dd>${esc(m.tools)}</dd><dt>${m.type==='game'?'Ойын шарты':'Пайдалану нұсқаулығы'}</dt><dd>${esc(m.rule)}</dd></dl>
+ <div class="fb" role="group" aria-label="Кері байланыс"><b>Пайдалы болды ма?</b>${[1,2,3,4,5].map(i=>`<button data-r="${i}" class="${i<=fb?'on':''}" aria-label="${i} жұлдыз">★</button>`).join('')}</div>
+ <p><button class="btn ghost" id="cpm">Нұсқаулықты көшіру</button>${m.own?' <button class="btn ghost" id="del">Өшіру</button>':''}</p></div></div></section>`]},
+author(){return[ph(SM.meirim,back('#home','Басты бет'),'Автор туралы','Мектепке дейінгі ұйым тәрбиешісі, «Бала әлемі – AI» жобасының авторы'),
+ `<section class="band"><div class="wrap prose"><p class="note">Бұл беттегі мәлімет – толтыруға арналған құрылым; автор өз деректерін жазады.</p><h2>Педагог туралы</h2><p>Аты-жөні, жұмыс орны, педагогикалық өтілі және біліктілік санаты осы жерде көрсетіледі.</p><h2>Педагогикалық ұстаным</h2><p>Бала – ойын арқылы танитын, сұрақ қоятын, жасайтын тұлға. Экран – тек бастау: әр цифрлық тапсырма нақты затпен, қозғалыспен және бір-бірімен қарым-қатынаспен жалғасады.</p><h2>Кәсіби бағыт</h2><p>Бес даму бағыты бойынша авторлық дидактикалық ойындар, ашық сабақ ресурстары және ата-аналармен цифрлық ынтымақтастық.</p><h2>ЖИ құралдарын қолданудағы мақсат</h2><p>Жасанды интеллектті шығармашылық көмекші ретінде пайдаланып, балалардың жасына сай, қауіпсіз әрі қызықты материалдарды тез әзірлеу; әр материалды педагог ретінде тексеріп, әдістемелік тұрғыдан бейімдеу.</p></div></section>`]},
+metodika(){return[ph(SM.akyldy,back('#home','Басты бет'),'Әдістемелік қоржын','Жұмыстардың жасалу тарихы, ЖИ құралдары, сабақ жоспарлары және тәжірибе нәтижелері'),
+ `<section class="band"><div class="wrap two"><div><h2>Ойынды әзірлеу кезеңдері</h2><ol class="steps"><li><b>Мақсат қою.</b> Даму бағыты, жас тобы, күтілетін нәтиже.</li><li><b>ЖИ-мен жоба.</b> Мәтін, сурет, әуен немесе бейненің алғашқы нұсқасы.</li><li><b>Педагогтік тексеру.</b> Мазмұн, тіл, қауіпсіздік, жасқа сәйкестік.</li><li><b>Тәжірибеде қолдану.</b> Экрандағы қысқа әрекет + нақты заттармен жалғасы.</li><li><b>Бақылау және жетілдіру.</b> Балалардың қызығушылығы, нәтиже, түзетулер.</li></ol></div>
+ <div><h2>Қолдану қағидалары</h2><ul class="prose"><li>Барлық ойын балалардың жас ерекшелігіне, қауіпсіздігіне және даму қажеттіліктеріне сай.</li><li>ЖИ – көмекші құрал; мазмұнды педагог тексеріп, бейімдейді.</li><li>Экрандағы әрекет қысқа, ары қарай карточка, қозғалыс және қарым-қатынаспен жалғасады.</li><li>Балалардың жеке деректері мен фотосуреттері ата-ананың келісімінсіз жарияланбайды.</li><li>Авторлық емес ән, сурет, бейне үшін авторлық құқық пен рұқсат ескеріледі.</li><li>Сайтта тек нақты қолданылған материалдар мен шынайы тәжірибе нәтижелері көрсетіледі.</li></ul>
+ <h2>Осында орналасады</h2><div class="sub-grid" style="${zs(SM.kiial)}"><div class="sub"><h3>Сабақ жоспарлары</h3><p>Ашық сабақтар мен ҰІӘ жоспарлары</p></div><div class="sub"><h3>Қолданылған ЖИ құралдары</h3><p>Қай құрал не үшін қолданылғаны</p></div><div class="sub"><h3>Тәжірибе нәтижелері</h3><p>Бақылау қорытындылары</p></div></div></div></div></section>`]},
+add(){const list=mine();return[ph(SM.family,back('#home','Басты бет'),'Материал қосу','Жаңа ойын, бейне, ән немесе кеңес енгізу'),
+ `<section class="band"><div class="wrap"><p class="note">Сайт иесіне арналған. Қосылған материал осы браузерде сақталады; барлық құрылғыда көрінуі үшін «Деректерді көшіру» батырмасымен алып, сайтқа тұрақты енгізуге болады.</p>
+ <form class="add" id="addf"><label>Атауы<input name="t" required placeholder="Мысалы: «Түрлі түсті шарлар»"></label><label>Бөлім<select name="sec">${SEC.map(s=>`<option value="${s.id}">${s.n}. ${s.t}</option>`).join('')}</select></label><label>Түрі<select name="type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><label>Жас тобы<select name="age">${AGES.map(a=>`<option>${a}</option>`).join('')}<option>Барлық топтар</option></select></label><label class="full">Мақсаты мен міндеттері<textarea name="goal" required></textarea></label><label class="full">Қажетті құралдар мен материалдар<input name="tools"></label><label class="full">Ойын шарты / пайдалану нұсқаулығы<textarea name="rule" required></textarea></label><div class="full"><button class="gbtn" type="submit">Сақтау</button></div></form>
+ <h2 style="margin-top:32px">Менің материалдарым (${list.length})</h2>${list.length?`<div class="grid">${list.map(card).join('')}</div><p><button class="btn ghost" id="exp">Деректерді көшіру (JSON)</button></p>`:'<div class="empty">Әзірге қосылған материал жоқ.</div>'}</div></section>`]}
+};
+
+
+
+function vgrid(){const L=all().filter(m=>m.sec==='video'&&m.vsrc);if(!L.length)return'';
+ return`<h2>Бейнетека</h2><p class="note" style="margin-top:-6px">${L.length} бейне · Суретті басып, бейнені ашыңыз</p><div class="vgrid">${L.map(m=>`<a class="vcard" href="#m-${esc(m.id)}"><span class="vp"><img src="${esc(m.cover)}" alt="" loading="lazy"><b>▶</b><i>${esc(m.dur)}</i></span><strong>${esc(m.t)}</strong><small>${esc(m.cat)} · ${esc(m.age)}</small></a>`).join('')}</div>`}
+function playlist(){const L=all().filter(m=>m.sec==='auen'&&m.src);if(!L.length)return'';const cats=[...new Set(L.map(m=>m.cat))];
+ return`<h2>Әндер жинағы</h2><p class="note" style="margin-top:-6px">${L.length} ән · Ән ойнап тұрғанда басқасы өздігінен тоқтайды</p><div class="plist">${cats.map(c=>`<h3>${esc(c)}</h3>${L.filter(m=>m.cat===c).map(m=>`<div class="prow"><img src="${esc(m.cover)}" alt=""><div class="pt"><a href="#m-${esc(m.id)}">${esc(m.t)}</a><span>${esc(m.age)} · ${esc(m.dur)}</span></div><audio controls preload="none" src="${esc(m.src)}"></audio></div>`).join('')}`).join('')}</div>`}
+document.addEventListener('play',e=>{if(e.target.tagName==='AUDIO')document.querySelectorAll('audio').forEach(a=>{if(a!==e.target)a.pause()})},true);
+const CAN_EMBED=/(github\.io|tursynbaeva-kamila\.kz)$/i.test(location.hostname)||location.protocol==="file:";
+function route(){const h=(location.hash||'#home').slice(1);let r,after=()=>{};
+ if(h==='catalog'){r=V.catalog();after=()=>bindFilter('c')}
+ else if(h.startsWith('s-')&&SM[h.slice(2)]){const s=SM[h.slice(2)];r=V.sec(s);after=()=>bindFilter('x',s.id)}
+ else if(h.startsWith('m-')){const m=all().find(x=>x.id===h.slice(2));if(m){r=V.mat(m);after=()=>bindMat(m)}else r=[`<div class="ph"><div></div><div><h1>Материал табылмады</h1><a class="gbtn" href="#catalog">Барлық материалдар</a></div></div>`,'']}
+ else if(['author','metodika','add'].includes(h)){r=V[h]();if(h==='add')after=bindAdd}
+ else{r=V.home();r[2]=1;after=bindHome}
+ $('#sky').classList.toggle('home',r[2]===1);$('#hero').innerHTML=r[0];$('#app').innerHTML=r[1];after();
+ const cur=h.startsWith('s-')||h.startsWith('m-')||h==='catalog'||h==='add'?'':(V[h]?h:'home');
+ document.querySelectorAll('nav.main a[data-n]').forEach(a=>a.classList.toggle('on',a.dataset.n===cur));
+ closeMenus();
+ if(playing){playing.forEach(clearTimeout);playing=null}
+ window.scrollTo(0,0)}
+
+function closeMenus(){$('#nav').classList.remove('open');$('#menuT').setAttribute('aria-expanded','false');$('#dd').classList.remove('open');$('#ddb').setAttribute('aria-expanded','false')}
+function bindHome(){$('#hs').onsubmit=e=>{e.preventDefault();store.set('ba-f',{q:$('#hq').value,s:$('#hsec').value,a:$('#hage').value});if(location.hash==='#catalog')route();else location.hash='#catalog'}}
+function copy(t){navigator.clipboard.writeText(t).then(()=>toast('Көшірілді'),()=>toast('Көшіру мүмкін болмады'))}
+function bindMat(m){
+ if(m.play)runGame($('#stage'),m.play);
+ const p=document.querySelector('[data-play]');if(p)p.onclick=()=>playTune(m.tune,p);
+ const vf=$('#vf');if(vf)vf.onchange=()=>{const f=vf.files[0];if(f){$('#vid').innerHTML=`<video controls src="${URL.createObjectURL(f)}"></video>`}};
+ const cp=$('#cp');if(cp)cp.onclick=()=>copy($('#inv').innerText);
+ $('#cpm').onclick=()=>copy(`${m.t}\nЖас тобы: ${m.age}\nМақсаты: ${m.goal}\nҚұралдар: ${m.tools}\nНұсқаулық: ${m.rule}`);
+ document.querySelectorAll('.fb [data-r]').forEach(b=>b.onclick=()=>{const fb=store.get('ba-fb',{});fb[m.id]=+b.dataset.r;store.set('ba-fb',fb);document.querySelectorAll('.fb [data-r]').forEach(x=>x.classList.toggle('on',+x.dataset.r<=fb[m.id]));toast('Рақмет!')});
+ const d=$('#del');if(d)d.onclick=()=>{if(d._c){store.set('ba-mine',mine().filter(x=>x.id!==m.id));location.hash='#add'}else{d._c=1;d.textContent='Растау: өшіру'}};
+}
+function bindAdd(){$('#addf').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),m=Object.fromEntries(f);m.id='my-'+Date.now();m.own=1;store.set('ba-mine',[...mine(),m]);toast('Сақталды');route()};
+ const x=$('#exp');if(x)x.onclick=()=>copy(JSON.stringify(mine(),null,1))}
+
+$('#fsec').innerHTML=SEC.map(s=>`<a href="#s-${s.id}">${s.n}. ${s.t}</a>`).join('');
+$('#ddp').innerHTML=SEC.map(s=>`<a href="#s-${s.id}"><img src="${s.img}" alt="">${s.n}. ${s.t}</a>`).join('')+'<hr><a href="games.html">🎮 Интерактивті ойындар</a><a href="#catalog">Барлық материалдар</a><a href="#add">Материал қосу</a>';
+$('#menuT').onclick=e=>{e.stopPropagation();const o=$('#nav').classList.toggle('open');$('#menuT').setAttribute('aria-expanded',o)};
+$('#ddb').onclick=e=>{e.stopPropagation();const o=$('#dd').classList.toggle('open');$('#ddb').setAttribute('aria-expanded',o)};
+document.addEventListener('click',e=>{if(!e.target.closest('#nav')&&!e.target.closest('#menuT'))closeMenus()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenus()});
+addEventListener('hashchange',route);route();
+}
+</script>
+</body>
+</html>
