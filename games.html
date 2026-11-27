@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ойындар – Бала әлемі – AI</title>
+<title>Ойындар – Балдәуреннің цифрлық әлемі</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -531,9 +531,9 @@ body{background:linear-gradient(180deg,#d6eaff,#fdf8ef 420px)}
 </head>
 <body>
 <header class="top"><div class="in">
-  <a class="home" href="index.html#home"><img src="img/logo.webp" alt="">БАЛА ӘЛЕМІ – <span class="ai">AI</span></a>
+  <a class="home" href="index.html#home"><img src="img/logo.webp" alt=""><span style="display:flex;flex-direction:column;line-height:1">БАЛДӘУРЕННІҢ<small style="font-size:.72em;color:#c98d1e;letter-spacing:.06em;margin-top:3px">ЦИФРЛЫҚ ӘЛЕМІ</small></span></a>
   <a class="back" href="index.html#cover" title="Кітап мұқабасына оралу">📖 Мұқаба</a>
-  <a class="back" style="margin-left:0" href="index.html#catalog">← Барлық материалдар</a>
+  <a class="back" href="index.html#catalog" style="margin-left:0">← Барлық материалдар</a>
 </div></header>
 <div class="ghead"><div class="ghtxt">
   <h1>Интерактивті ойындар 🎈</h1>
@@ -1483,7 +1483,59 @@ function g3Runner() {
     if (left <= 0) { over = true; win('Мәреге жеттің! ⭐ ' + stars + ' жұлдыз жинадың' + (hits ? ', кедергіге ' + hits + ' рет тидің.' : ', бірде-бір кедергіге тимедің!')); } });
 }
 
+
+/* ---------- 12. Батады ма, батпайды ма? ---------- */
+const SINK = [
+  { k: 'stone', l: 'Тас', f: 0, why: 'тас ауыр әрі тығыз' },
+  { k: 'wood', l: 'Ағаш текше', f: 1, why: 'ағаш судан жеңіл' },
+  { k: 'key', l: 'Темір кілт', f: 0, why: 'темір судан ауыр' },
+  { k: 'duck', l: 'Резеңке үйрек', f: 1, why: 'оның ішінде ауа бар' },
+  { k: 'apple', l: 'Алма', f: 1, why: 'алманың ішінде ауа көп' },
+  { k: 'coin', l: 'Тиын', f: 0, why: 'тиын металдан жасалған' },
+  { k: 'leaf', l: 'Жапырақ', f: 1, why: 'жапырақ өте жеңіл' },
+  { k: 'ball', l: 'Доп', f: 1, why: 'доптың ішінде ауа бар' },
+  { k: 'spoon', l: 'Темір қасық', f: 0, why: 'темір судан ауыр' },
+];
+function sinkObj(S, k) { const T = S.T, g = new T.Group(); g.userData = { id: k };
+  if (k === 'stone') { const m = S.mesh(new T.DodecahedronGeometry(.32, 1), 0x8a8f98); m.scale.set(1.2, .8, 1); g.add(m); }
+  if (k === 'wood') { g.add(S.mesh(rbox(T, .55, .55, .55, .06), 0xc58a4a)); }
+  if (k === 'key') { const r = S.mesh(new T.TorusGeometry(.16, .06, 12, 24), 0xb8c2cc); r.position.x = -.22; g.add(r, S.mesh(rbox(T, .5, .08, .08, .02), 0xb8c2cc, [.14, 0, 0]), S.mesh(rbox(T, .06, .14, .08, .01), 0xb8c2cc, [.3, -.08, 0]), S.mesh(rbox(T, .06, .1, .08, .01), 0xb8c2cc, [.2, -.06, 0])); g.traverse(o => o.material && (o.material.metalness = .8, o.material.roughness = .25)); }
+  if (k === 'duck') { g.add(sph(S, .28, 0xffd23f, [0, 0, 0], [1.2, .85, 1]), sph(S, .18, 0xffd23f, [.2, .22, 0])); const bk = S.mesh(new T.ConeGeometry(.07, .18, 12), 0xff8a00, [.4, .2, 0]); bk.rotation.z = -Math.PI / 2; g.add(bk); g.add(sph(S, .03, BK, [.28, .28, .1]), sph(S, .03, BK, [.28, .28, -.1])); }
+  if (k === 'apple') { g.add(sph(S, .3, 0xe53935, [0, 0, 0], [1, .92, 1])); g.add(S.mesh(new T.CylinderGeometry(.02, .02, .14, 6), 0x6d4c41, [0, .3, 0])); const lf = sph(S, .08, 0x43a047, [.08, .32, 0], [1.4, .4, .8]); g.add(lf); }
+  if (k === 'coin') { const c = S.mesh(new T.CylinderGeometry(.22, .22, .05, 32), 0xe8a512, [0, 0, 0]); c.material.metalness = .8; c.material.roughness = .25; c.rotation.x = .5; g.add(c); }
+  if (k === 'leaf') { const l = sph(S, .3, 0x66bb6a, [0, 0, 0], [1.3, .12, .7]); g.add(l, S.mesh(rbox(T, .5, .02, .02, .005), 0x2e7d32, [0, .03, 0])); }
+  if (k === 'ball') { g.add(sph(S, .3, 0x3b82f6)); const st = S.mesh(new T.TorusGeometry(.3, .045, 10, 40), 0xffffff); st.rotation.x = Math.PI / 2; g.add(st); }
+  if (k === 'spoon') { const b = sph(S, .14, 0xb8c2cc, [-.18, 0, 0], [1.3, .35, 1]); g.add(b, S.mesh(rbox(T, .42, .05, .07, .015), 0xb8c2cc, [.12, .02, 0])); g.traverse(o => o.material && (o.material.metalness = .8, o.material.roughness = .25)); }
+  return g; }
+function g3Sink() {
+  const b = body(); const btns = el('div', { class: 'pal3' }); const U3 = stage3(b); b.append(btns);
+  const S = make3D(U3.host, { cam: [0, 2.3, 6.3], look: [0, 1.25, 0], rotY: -.3 }); if (!S) return; const T = S.T;
+  const W = 3.2, H = 2.1, Dp = 1.8, WL = 1.45;
+  const table = S.mesh(rbox(T, 4.4, .25, 2.6, .08), 0xc58a4a, [0, -.12, 0]); S.world.add(table);
+  const water = new T.Mesh(rbox(T, W - .1, WL, Dp - .1, .04), new T.MeshPhysicalMaterial({ color: lin(T, 0x1e9be8), transparent: true, opacity: .62, roughness: .05, clearcoat: 1, depthWrite: false })); water.position.y = WL / 2 + .05; water.renderOrder = 2; S.world.add(water); const surf = new T.Mesh(new T.PlaneGeometry(W - .12, Dp - .12), new T.MeshPhysicalMaterial({ color: lin(T, 0x9be3ff), transparent: true, opacity: .5, roughness: .02, clearcoat: 1, depthWrite: false })); surf.rotation.x = -Math.PI / 2; surf.position.y = WL + .06; surf.renderOrder = 4; S.world.add(surf); S.anim(() => { if (!surf.parent) return false; surf.position.y = WL + .06 + Math.sin(now3() / 500) * .01; });
+  const glass = new T.Mesh(rbox(T, W, H, Dp, .06), new T.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: .14, roughness: .02, clearcoat: 1, depthWrite: false, side: T.DoubleSide })); glass.position.y = H / 2; glass.renderOrder = 3; S.world.add(glass);
+  const sand = S.mesh(rbox(T, W - .14, .1, Dp - .14, .03), 0xf1d9a0, [0, .1, 0]); S.world.add(sand);
+  [[-1.1, .45], [1.05, .35]].forEach(([x, h]) => { const pl = S.mesh(new T.ConeGeometry(.12, h * 2, 8), 0x2e9e4f, [x, .15 + h, -.55]); pl.scale.x = .5; S.world.add(pl); });
+  const n = byAge([4, 6, 8]); const list = shuffle(SINK).slice(0, n); let i = 0, cur = null, busy = false, ok = 0, placed = [];
+  function next() { U3.progress(i / n); if (i >= n) { win('Нағыз зерттеуші! ' + ok + ' / ' + n + ' болжам дұрыс шықты 🧪'); return; }
+    const it = list[i]; cur = sinkObj(S, it.k); cur.position.set(0, 2.75, 0); cur.scale.setScalar(.01); S.world.add(cur); tw(S, 400, k => cur.scale.setScalar(ease(k) * 1.15)); const o = cur; S.anim(() => { if (o.userData.drop) return false; o.rotation.y += .02; o.position.y = 2.75 + Math.sin(now3() / 300) * .08; });
+    U3.say('🤔 ' + it.l + ' суға түссе — батады ма, батпайды ма? Алдымен болжа!'); busy = false; }
+  function answer(guess) { if (busy || !cur) return; busy = true; const it = list[i], o = cur; o.userData.drop = 1; const right = (guess === it.f); const x = rnd(-1, 1), z = rnd(-.4, .4); const fy = it.f ? WL + .05 : .3 + Math.random() * .05; const y0 = o.position.y;
+    tw(S, 520, k => { o.position.y = y0 + (WL + .05 - y0) * k * k; o.position.x = x * k; o.position.z = z * k; }, () => { popFx(S, o.position.clone(), 0x9fe0ff); snd('flip');
+      if (it.f) { S.anim(() => { if (!o.parent) return false; o.position.y = fy - .06 + Math.sin(now3() / 400 + x) * .05; o.rotation.z = Math.sin(now3() / 600) * .15; }); }
+      else { const ys = o.position.y; tw(S, 1500, k => { o.position.y = ys + (fy - ys) * ease(k); o.rotation.x = k * 1.2; }); for (let q = 0; q < 6; q++) setTimeout(() => { const bb = S.mesh(new T.SphereGeometry(.05, 8, 6), 0xffffff, [o.position.x + rnd(-.1, .1), o.position.y, o.position.z]); S.world.add(bb); tw(S, 900, k => bb.position.y += .02, () => S.world.remove(bb)); }, q * 180); }
+      placed.push(o); if (placed.length > 4) S.world.remove(placed.shift());
+      if (right) { ok++; snd('ok'); addScore(); } else snd('bad');
+      U3.say((right ? '✅ Болжамың дұрыс! ' : '🙂 Болжам басқаша шықты. ') + it.l + ' ' + (it.f ? 'батпайды' : 'батады') + ', себебі ' + it.why + '.', right ? 'ok' : 'bad');
+      i++; setTimeout(next, AGE === 2 ? 3200 : 2600); }); }
+  const bS = el('button', { class: 'blk', style: 'background:linear-gradient(180deg,#5b8dff,#2f5fd0);font-size:20px;padding:0 26px' }, '⬇️ Батады'); bS.onclick = () => answer(0);
+  const bF = el('button', { class: 'blk', style: 'background:linear-gradient(180deg,#ffb74d,#f57c00);font-size:20px;padding:0 26px' }, '🛟 Батпайды'); bF.onclick = () => answer(1);
+  btns.append(bS, bF); next();
+}
+
 GAMES.push(
+  { id: 'sink3d', t: 'Батады ма, батпайды ма?', d: 'Болжа да, тексер: 3D су ыдысына түскен зат бата ма, қалқи ма?', emo: '🧪', d3: 1, run: g3Sink },
+  { id: 'monshak', t: 'Моншақ тізу', d: 'Genially ойыны: моншақтарды үлгі бойынша ретімен тізу', th: './video/v7.webp', url: 'https://view.genially.com/67eeaaa7100b630a501f95fd', run: () => {} },
   { id: 'balloons3d', t: 'Түсін тап: шарларды жар', d: 'Ұшып бара жатқан 3D шарлардың ішінен аталған түсті тауып жар', emo: '🎈', d3: 1, run: g3Balloons },
   { id: 'odd3d', t: 'Артығын анықта', d: 'Түсі, пішіні немесе өлшемі бойынша артық затты тап және себебін айт', emo: '🧩', d3: 1, run: g3Odd },
   { id: 'count3d', t: 'Пішіндер қаласы: санап көр', d: '3D қаладағы үйлерді, ағаштарды, машиналарды сана', emo: '🏘️', d3: 1, run: g3Count },
@@ -1498,10 +1550,10 @@ GAMES.push(
   { id: 'runner3d', t: 'Кедергіден өт', d: 'Солға және оңға бұрылып, кедергіден өт, жұлдыз жина', emo: '🏃', d3: 1, run: g3Runner },
 );
 
-const TH3=['shapes3d','tower3d','paint3d','balloons3d','odd3d','count3d','animals3d','changed3d','builder3d','emotions3d','help3d','bunny3d','moves3d','runner3d','applique','waste','eco'];
+const TH3=['sink3d','shapes3d','tower3d','paint3d','balloons3d','odd3d','count3d','animals3d','changed3d','builder3d','emotions3d','help3d','bunny3d','moves3d','runner3d','applique','waste','eco'];
 GAMES.forEach(g=>{if(TH3.includes(g.id)){g.th='./img/g3/'+g.id+'.webp';delete g.emo;g.contain=false}if(g.id==='delightex'){g.th='img/hab_c_forest.webp';delete g.emo}});
-const SECS=[['akyldy','Ақылды ойындар әлемі','img/i1.webp'],['soilei','Сөйлейтін әлем','img/i2.webp'],['kiial','Қиял мен шығармашылық әлемі','img/i3.webp'],['meirim','Мейірім мен достық мекені','img/i4.webp'],['qozgalys','Қозғалыс – денсаулық кепілі','img/i5.webp']];
-const META={"shapes3d": [["akyldy"], [0, 1, 2]], "tower3d": [["akyldy"], [0, 1, 2]], "place": [["akyldy", "kiial"], [0, 1, 2]], "seasons": [["akyldy"], [0, 1, 2]], "habitat": [["akyldy"], [0, 1, 2]], "homes": [["akyldy"], [0, 1]], "growth": [["akyldy"], [0, 1, 2]], "memory": [["akyldy"], [0, 1, 2]], "waste": [["akyldy", "meirim"], [1, 2]], "riddle": [["soilei"], [1, 2]], "babies": [["soilei"], [0, 1]], "paint3d": [["kiial"], [0, 1, 2]], "studio": [["kiial"], [0, 1, 2]], "applique": [["kiial"], [0, 1, 2]], "puzzle": [["kiial"], [0, 1, 2]], "sticker": [["kiial"], [0, 1, 2]], "eco": [["meirim"], [1, 2]], "delightex": [["akyldy", "soilei"], [0, 1, 2]], "balloons3d": [["akyldy"], [0, 1, 2]], "odd3d": [["akyldy"], [0, 1, 2]], "count3d": [["akyldy"], [0, 1, 2]], "animals3d": [["soilei"], [0, 1, 2]], "changed3d": [["kiial", "akyldy"], [0, 1, 2]], "builder3d": [["kiial"], [0, 1, 2]], "emotions3d": [["meirim"], [0, 1, 2]], "help3d": [["meirim"], [0, 1, 2]], "bunny3d": [["qozgalys"], [0, 1, 2]], "moves3d": [["qozgalys"], [0, 1, 2]], "runner3d": [["qozgalys"], [0, 1, 2]]};
+const SECS=[['akyldy','Ақылды ойындар әлемі','img/i1.webp'],['soilei','Сөйлейтін әлем','img/i2.webp'],['kiial','Қиял мен шығармашылық әлемі','img/i3.webp'],['meirim','Мейірім мен достық мекені','img/i4.webp'],['qozgalys','Қозғалыс – денсаулық кепілі','img/i5.webp'],['zertteu','Кішкентай зерттеушілер','img/i9.webp']];
+const META={"shapes3d": [["akyldy"], [0, 1, 2]], "tower3d": [["akyldy"], [0, 1, 2]], "place": [["akyldy", "kiial"], [0, 1, 2]], "seasons": [["akyldy"], [0, 1, 2]], "habitat": [["akyldy"], [0, 1, 2]], "homes": [["akyldy"], [0, 1]], "growth": [["akyldy", "zertteu"], [0, 1, 2]], "memory": [["akyldy"], [0, 1, 2]], "waste": [["akyldy", "meirim"], [1, 2]], "riddle": [["soilei"], [1, 2]], "babies": [["soilei"], [0, 1]], "paint3d": [["kiial"], [0, 1, 2]], "studio": [["kiial"], [0, 1, 2]], "applique": [["kiial"], [0, 1, 2]], "puzzle": [["kiial"], [0, 1, 2]], "sticker": [["kiial"], [0, 1, 2]], "eco": [["meirim"], [1, 2]], "delightex": [["akyldy", "soilei"], [0, 1, 2]], "sink3d": [["zertteu"], [0, 1, 2]], "monshak": [["akyldy"], [0, 1, 2]], "balloons3d": [["akyldy"], [0, 1, 2]], "odd3d": [["akyldy"], [0, 1, 2]], "count3d": [["akyldy"], [0, 1, 2]], "animals3d": [["soilei"], [0, 1, 2]], "changed3d": [["kiial", "akyldy"], [0, 1, 2]], "builder3d": [["kiial"], [0, 1, 2]], "emotions3d": [["meirim"], [0, 1, 2]], "help3d": [["meirim"], [0, 1, 2]], "bunny3d": [["qozgalys"], [0, 1, 2]], "moves3d": [["qozgalys"], [0, 1, 2]], "runner3d": [["qozgalys"], [0, 1, 2]]};
 function renderGrid(){const host=$('#gameGrid');host.innerHTML='';
  $('#ageBar').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.a===AGEF));
  SECS.forEach(([k,t,ic])=>{const list=GAMES.filter(g=>META[g.id]&&META[g.id][0].includes(k)&&(AGEF<0||META[g.id][1].includes(AGEF))).sort((a,b)=>(b.d3||0)-(a.d3||0));if(!list.length)return;
@@ -1517,7 +1569,9 @@ renderGrid();
 function setHash(h){try{history.replaceState(null,'',h)}catch(e){}}
 function syncAgeSel(){const s=$('#gAge');s.value=AGE;}
 $('#gAge').onchange=e=>{setAge(+e.target.value);renderGrid();restartGame()};
-function openGame(id) { curGame = GAMES.find(g => g.id === id); if(!curGame)return; memN=[4,6,8][AGE]; seqN=[4,6,8][AGE]; pzN=null; syncAgeSel(); $('#gTitle').textContent = curGame.t; setScore(0); $('#gm').classList.add('show'); document.body.style.overflow = 'hidden'; curGame.run(); if (location.hash !== '#' + id) setHash('#' + id); }
+function stat(id,f){try{const st=JSON.parse(localStorage.getItem('ba-stats')||'{}');const g=GAMES.find(x=>x.id===id);const r=st[id]||{p:0,w:0,s:0};r.t=g?g.t:id;r.l=Date.now();f(r);st[id]=r;localStorage.setItem('ba-stats',JSON.stringify(st))}catch(e){}}
+const _win0=win;win=function(t,n){if(curGame)stat(curGame.id,r=>{r.w++;r.s+=(typeof score==='number'?score:0)});return _win0(t,n)};
+function openGame(id) { curGame = GAMES.find(g => g.id === id); if(!curGame)return; stat(id,r=>r.p++); memN=[4,6,8][AGE]; seqN=[4,6,8][AGE]; pzN=null; syncAgeSel(); $('#gTitle').textContent = curGame.t; setScore(0); $('#gm').classList.add('show'); document.body.style.overflow = 'hidden'; curGame.run(); if (location.hash !== '#' + id) setHash('#' + id); }
 function closeGame() { $('#gm').classList.remove('show'); document.body.style.overflow = ''; closeFin(); $('#gBody').innerHTML=''; setHash('#all'); }
 function restartGame() { setScore(0); memN=[4,6,8][AGE]; seqN=[4,6,8][AGE]; curGame && curGame.run(); }
 addEventListener('keydown', e => { if (e.key === 'Escape' && $('#gm').classList.contains('show')) closeGame(); });
