@@ -182,6 +182,8 @@ form.add .full{grid-column:1/-1}
 .lab{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin-bottom:30px}.labs{flex:1 1 160px;background:linear-gradient(180deg,#fff,#eefaf5);border:3px solid #fff;border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 0 #cfe8dc,0 12px 22px rgba(40,120,90,.12)}.labs b{color:var(--navy);font-size:17px}.labs small{color:var(--mut);font-weight:700}.lab-i{font-size:34px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.15))}.lab-a{align-self:center;font-size:26px;color:#2fa86f;font-weight:900}@media(max-width:700px){.lab-a{display:none}}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:10px 0 18px}.kpi{background:#fff;border-radius:22px;padding:18px;box-shadow:0 6px 0 #e9dfbd,0 12px 22px rgba(120,100,40,.12)}.kpi b{display:block;font-size:clamp(28px,3vw,40px);font-weight:900;color:var(--navy);line-height:1}.kpi span{color:var(--mut);font-weight:700;font-size:14px}
 .rlist{display:grid;gap:8px;background:#fff;border-radius:22px;padding:14px;box-shadow:0 6px 20px rgba(80,100,160,.1)}.rrow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;gap:12px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}.rrow:last-child{border:0}.rn{display:grid}.rn a{font-weight:900;color:var(--navy);text-decoration:none}.rn small{color:var(--mut);font-weight:700}.rbar{height:14px;background:#f2efe3;border-radius:999px;overflow:hidden}.rbar i{display:block;height:100%;background:linear-gradient(90deg,#f6cf6a,#d9a23a);border-radius:999px}.rv{font-weight:800;font-size:14px;color:var(--mut);white-space:nowrap;text-align:right}@media(max-width:700px){.rrow{grid-template-columns:minmax(0,1fr)}.rv{text-align:left;white-space:normal}}
+.slogan{max-width:560px;margin:14px 0 0;padding:12px 20px;border-radius:22px;background:rgba(255,255,255,.8);backdrop-filter:blur(6px);color:var(--navy);font-weight:800;font-size:clamp(15px,1.35vw,18px);line-height:1.4;box-shadow:0 6px 0 rgba(200,210,235,.8),0 12px 24px rgba(60,80,140,.12);border:2px solid #fff;font-style:italic}
+@media(max-width:960px){.slogan{margin:14px auto 0;text-align:center}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:50}
 .toast.show{opacity:1}
 footer{background:linear-gradient(180deg,#1d3a8f,#152a68);color:#fff;position:relative}
@@ -242,7 +244,7 @@ footer a{display:block;text-decoration:none;padding:3px 0;opacity:.92}
 #intro .csub{margin:4% 0 0;color:#f3dfa6;font-weight:800;font-size:calc(var(--bw) * .036);line-height:1.25}
 #intro .cpic{position:relative;margin-top:5%;width:86%;flex:1;min-height:0;border-radius:50% 50% 14px 14px/26% 26% 14px 14px;overflow:hidden;border:3px solid #e9bd58;box-shadow:0 0 0 6px rgba(233,189,88,.22),0 10px 22px rgba(0,0,0,.4)}
 #intro .cpic img{width:100%;height:100%;object-fit:cover;object-position:64% 62%}
-#intro .cdots{margin-top:4%;color:#f6cf6a;font-weight:800;font-size:calc(var(--bw) * .03);letter-spacing:.02em}
+#intro .cdots{margin-top:3.5%;line-height:1.3;color:#f6cf6a;font-weight:800;font-size:calc(var(--bw) * .03);letter-spacing:.02em}
 #intro .spine{position:absolute;top:0;bottom:0;left:0;width:34px;transform-origin:left center;transform:rotateY(90deg);background:linear-gradient(90deg,#10245e,#1d3a8f 50%,#10245e);border-radius:6px 0 0 6px;background-image:linear-gradient(180deg,transparent 12%,#e9bd58 12%,#e9bd58 14%,transparent 14%,transparent 86%,#e9bd58 86%,#e9bd58 88%,transparent 88%),linear-gradient(90deg,#10245e,#1d3a8f 50%,#10245e)}
 #intro .ribbon{position:absolute;bottom:-7%;left:70%;width:7%;height:14%;background:linear-gradient(90deg,#c62828,#e53935 50%,#b71c1c);clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);transform:translateZ(-10px);box-shadow:0 4px 6px rgba(0,0,0,.25)}
 #intro .ihint{position:absolute;bottom:max(5vh,24px);left:0;right:0;text-align:center;font:900 clamp(17px,2.4vw,22px) Nunito,sans-serif;color:#1d3a8f}
@@ -283,7 +285,7 @@ footer a{display:block;text-decoration:none;padding:3px 0;opacity:.92}
           <div class="ctitle2">ЦИФРЛЫҚ ӘЛЕМІ</div>
           <p class="csub">Балалар әлеміндегі жасанды интеллект –<br>педагогтің цифрлық көмекшісі</p>
           <div class="cpic"><img src="img/hero.webp" alt="Ұлттық бас киім киген ұл мен қыз робот-көмекшімен бірге"></div>
-          <div class="cdots">Ойын · Таным · Шығармашылық · Тәрбие</div>
+          <div class="cdots">Әр баланың қызығушылығын оятып,<br>әр тәрбиешінің шығармашылығына жол ашатын кеңістік!</div>
         </div>
       </div>
       <div class="cv inner"><div class="ex">Әр бетте — жаңа ашылым ✨</div></div>
@@ -498,7 +500,7 @@ const V={
 home(){return[`<div class="hero"><div class="txt"><h1 class="ttl">Балдәуреннің<br><span class="l2">цифрлық әлемі</span></h1>
  <svg class="swoosh" viewBox="0 0 420 16" aria-hidden="true"><path d="M4 12Q210-4 416 10" stroke="url(#gg)" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
  <span class="pill">Балалар әлеміндегі жасанды интеллект – педагогтің цифрлық көмекшісі</span>
- <div class="dots"><span>Ойын</span><span>Таным</span><span>Шығармашылық</span><span>Тәрбие</span><span>Ынтымақтастық</span></div></div>
+ <p class="slogan">✨ Балдәуреннің цифрлық әлемі – әр баланың қызығушылығын оятып, әр тәрбиешінің шығармашылығына жол ашатын кеңістік!</p></div>
  <div class="art"><img src="img/hero.webp" alt="Қазақ ұлттық бас киімін киген ұл мен қыз робот-көмекшімен бірге планшеттен пішіндерді қарап отыр" width="1672" height="941"></div></div>
  <div class="sw"><form class="search" id="hs" role="search"><label class="in">${SRCH}<input id="hq" placeholder="Керекті материалды іздеңіз…" aria-label="Іздеу"></label><span class="vs"></span>
  <div class="sel"><select id="hsec" aria-label="Тақырып бойынша"><option value="">Тақырып бойынша</option>${SEC.map(s=>`<option value="${s.id}">${s.t}</option>`).join('')}</select></div>
