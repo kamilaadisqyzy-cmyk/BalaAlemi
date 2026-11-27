@@ -2202,7 +2202,7 @@ function fromHash(){const h0 = location.hash.slice(1); if (GAMES.some(g => g.id 
 addEventListener('hashchange',fromHash);fromHash();
 
 /* ---------- ДЫБЫСТЫҚ НҰСҚАУЛАР (оқи алмайтын балаларға) ---------- */
-const VO_HAS = new Set(Array.from({ length: 102 }, (_, i) => i + 1));
+const VO_HAS = new Set(Array.from({ length: 139 }, (_, i) => i + 1));
 const VO_GAME = { shapes3d: 8, balloons3d: 9, odd3d: 10, count3d: 11, tower3d: 12, puzzle: 13, riddle: 14, memory: 15, place: 16, applique: 17, sticker: 18, studio: 19, paint3d: 20, builder3d: 21, waste: 22, eco: 23, seasons: 24, habitat: 25, homes: 26, babies: 27, growth: 28, animals3d: 29, changed3d: 30, emotions3d: 31, help3d: 32, bunny3d: 33, moves3d: 34, runner3d: 35, melt3d: 36, grow3d: 37, magnet3d: 38, sink3d: 39, mix3d: 40, evap3d: 41 };
 let voA = null, voLast = 0, voQ = [], voHold = false, voCur = 0, voKey = '', voKeyT = 0;
 const voBtnEl = () => document.getElementById('voBtn');
@@ -2227,12 +2227,15 @@ function voMatch(t) { if (!t) return 0; const lo = t.toLowerCase();
   if (t.includes('Неше үй бар')) return 54; if (t.includes('Неше ағаш бар')) return 55; if (t.includes('Неше машина бар')) return 56;
   if (typeof ANIM3 !== 'undefined') { const i = VO_AN.findIndex(k => ANIM3[k] && t.includes(ANIM3[k].d)); if (i >= 0 && t.includes('Бұл кім')) return 64 + i; }
   if (typeof EMO !== 'undefined') { const i = VO_EM.findIndex(k => EMO[k] && t.includes(EMO[k][1])); if (i >= 0) return 71 + i; }
+  { const m = t.match(/Бұл — ([а-яәғқңөұүһіё]+)! Енді/); if (m && typeof ANIM3 !== 'undefined') { const i = VO_AN.findIndex(k => ANIM3[k] && ANIM3[k].l.toLowerCase() === m[1]); if (i >= 0) return 103 + i; } }
+  if (typeof EMO !== 'undefined') { const i = VO_EM.findIndex(k => EMO[k] && lo.includes('ол — ' + EMO[k][0].toLowerCase())); if (i >= 0) return 110 + i; }
+  { const m = t.match(/Жауабы: (.+?)!/); if (m) { const i = D.riddles.findIndex(r => r.a.toLowerCase() === m[1].trim().toLowerCase()); if (i >= 0) return 115 + i; } }
   if (t.includes('ЕҢ ТЕЗ')) return 76; if (t.includes('ЕҢ БАЯУ')) return 77; return 0; }
 (() => { const gb = document.getElementById('gBody'); if (!gb) return;
   new MutationObserver(ms => { if (!$('#gm').classList.contains('show')) return; const seen = new Set();
     ms.forEach(m => { let el = m.target.nodeType === 3 ? m.target.parentElement : m.target; const cand = [el]; m.addedNodes && m.addedNodes.forEach(x => cand.push(x.nodeType === 3 ? x.parentElement : x));
       cand.forEach(e => { if (!e || seen.has(e)) return; seen.add(e); const t = e.textContent || ''; if (t.length > 260) return; const n = voMatch(t); if (!n) return;
-        const now = Date.now(); if (voKey === n && now - voKeyT < 2500) return; voKey = n; voKeyT = now; vo(n, 'q'); }); }); })
+        const now = Date.now(); if (voKey === n && now - voKeyT < 2500) return; voKey = n; voKeyT = now; if (n >= 103 && voCur >= 1 && voCur <= 6) voStart(n); else vo(n, 'q'); }); }); })
   .observe(gb, { childList: true, subtree: true, characterData: true }); })();
 (() => { const t = document.getElementById('gTitle'); if (!t) return; const b = document.createElement('button'); b.id = 'voBtn'; b.className = 'voBtn'; b.setAttribute('aria-label', 'Тыңда'); b.innerHTML = '<span>🔊</span><b>Тыңда</b>';
   b.onclick = () => { const n = voGame(); if (!n) return; voStop(); const k = voKey && Date.now() - voKeyT < 600000 ? voKey : 0; vo(n, 'now'); if (k) voQ.push(k); }; t.after(b); })();
