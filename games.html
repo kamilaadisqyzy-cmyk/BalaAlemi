@@ -1087,9 +1087,9 @@ function g3Shapes() {
     objs.forEach(o => S.world.remove(o)); objs = [];
     const nS = byAge([3, 4, 5]); let items;
     if (AGE < 2) { const shapes = shuffle(SH3.slice(0, nS)); const cols = shuffle(C3); items = shapes.map((s, i) => ({ s, c: cols[i % cols.length] })); }
-    else { items = []; while (items.length < 5) { const s = SH3[Math.random() * 5 | 0], c = C3[Math.random() * 5 | 0]; if (!items.some(x => x.s === s && x.c === c)) items.push({ s, c }); } }
+    else { items = shuffle(SH3.slice(0, 5)).map(s => ({ s, c: C3[Math.random() * 5 | 0] })); }
     let target = items[Math.random() * items.length | 0]; if (g3Shapes.last && items.length > 1) { const alt = items.filter(x => x.s !== g3Shapes.last); if (alt.length) target = alt[Math.random() * alt.length | 0]; } g3Shapes.last = target.s;
-    const q = AGE < 2 ? target.s.acc + ' тап!' : target.c[1] + ' ' + target.s.acc.toLowerCase() + ' тап!';
+    const q = target.s.acc + ' тап!';
     m.textContent = q; m.className = 'msg';
     const n = items.length, gap = n > 4 ? 1.45 : 1.75;
     items.forEach((it, i) => { const o = S.mesh(it.s.g(S.T), it.c[0]); const x = (i - (n - 1) / 2) * gap; const z = Math.sin(i * 1.7) * .5; o.position.set(x, it.s.y + 2.5, z); o.userData = { it, base: it.s.y, s: 1 }; S.world.add(o); objs.push(o);
@@ -2202,20 +2202,48 @@ function fromHash(){const h0 = location.hash.slice(1); if (GAMES.some(g => g.id 
 addEventListener('hashchange',fromHash);fromHash();
 
 /* ---------- ДЫБЫСТЫҚ НҰСҚАУЛАР (оқи алмайтын балаларға) ---------- */
-const VO_HAS = new Set(Array.from({ length: 41 }, (_, i) => i + 1));
+const VO_HAS = new Set(Array.from({ length: 102 }, (_, i) => i + 1));
 const VO_GAME = { shapes3d: 8, balloons3d: 9, odd3d: 10, count3d: 11, tower3d: 12, puzzle: 13, riddle: 14, memory: 15, place: 16, applique: 17, sticker: 18, studio: 19, paint3d: 20, builder3d: 21, waste: 22, eco: 23, seasons: 24, habitat: 25, homes: 26, babies: 27, growth: 28, animals3d: 29, changed3d: 30, emotions3d: 31, help3d: 32, bunny3d: 33, moves3d: 34, runner3d: 35, melt3d: 36, grow3d: 37, magnet3d: 38, sink3d: 39, mix3d: 40, evap3d: 41 };
-let voA = null, voLast = 0;
-function vo(n) { if (!VO_HAS.has(n)) return; try { if (voA) voA.pause(); voA = new Audio('./audio/v/' + String(n).padStart(3, '0') + '.mp3'); voA.play().catch(() => {}); voLast = Date.now(); const b = document.getElementById('voBtn'); if (b) { b.classList.add('talk'); voA.onended = () => b.classList.remove('talk'); } } catch (e) {} }
-function voStop() { try { if (voA) voA.pause(); } catch (e) {} const b = document.getElementById('voBtn'); if (b) b.classList.remove('talk'); }
+let voA = null, voLast = 0, voQ = [], voHold = false, voCur = 0, voKey = '', voKeyT = 0;
+const voBtnEl = () => document.getElementById('voBtn');
+function voStart(n) { try { if (voA) { voA.onended = null; voA.pause(); } voCur = n; voA = new Audio('./audio/v/' + String(n).padStart(3, '0') + '.mp3'); const b = voBtnEl(); if (b) b.classList.add('talk');
+  voA.onended = voA.onerror = () => { const b2 = voBtnEl(); if (b2) b2.classList.remove('talk'); voCur = 0; if (voQ.length) setTimeout(() => { if (!voCur && voQ.length) voStart(voQ.shift()); }, 250); };
+  voA.play().catch(() => { voCur = 0; const b3 = voBtnEl(); if (b3) b3.classList.remove('talk'); }); voLast = Date.now(); } catch (e) {} }
+const voBusy = () => voCur && voA && !voA.paused && !voA.ended;
+function vo(n, mode) { if (!VO_HAS.has(n)) return; // mode: 'now' — бірден (кезекті сақтайды), 'q' — кезекке, 'soft' — бос болса ғана
+  if (mode === 'q') { if (voHold || voBusy()) { if (!voQ.includes(n)) voQ.push(n); } else voStart(n); return; }
+  if (mode === 'soft') { if (!voBusy() && !voHold) voStart(n); return; }
+  voStart(n); }
+function voStop() { voQ = []; voCur = 0; try { if (voA) { voA.onended = null; voA.pause(); } } catch (e) {} const b = voBtnEl(); if (b) b.classList.remove('talk'); }
 const voGame = () => curGame && VO_GAME[curGame.id];
-(() => { const t = document.getElementById('gTitle'); if (!t) return; const b = document.createElement('button'); b.id = 'voBtn'; b.className = 'voBtn'; b.setAttribute('aria-label', 'Тыңда'); b.innerHTML = '<span>🔊</span><b>Тыңда</b>'; b.onclick = () => { const n = voGame(); if (n) vo(n); }; t.after(b); })();
-{ const _o = openGame; openGame = function (id) { _o(id); const n = voGame(); const b = document.getElementById('voBtn'); if (b) b.style.display = n ? '' : 'none'; voStop(); if (n) setTimeout(() => vo(n), 450); }; }
-{ const _r = restartGame; restartGame = function () { _r(); const n = voGame(); voStop(); if (n) setTimeout(() => vo(n), 350); }; }
+/* ойын ішіндегі тапсырманы мәтіні бойынша табу */
+const VO_COL = [['қызғылт сары', 47], ['қызыл', 42], ['көк', 43], ['сары', 44], ['жасыл', 45], ['күлгін', 46], ['қызғылт', 48]];
+const VO_ACC = { 'Шарды': 49, 'Текшені': 50, 'Цилиндрді': 51, 'Конусты': 52, 'Пирамиданы': 53, 'Қоянды': 57, 'Құсты': 58, 'Балықты': 59, 'Араны': 60, 'Тасбақаны': 61, 'Мысықты': 62, 'Бақаны': 63 };
+const VO_AN = ['bunny', 'bird', 'fish', 'bee', 'turtle', 'cat', 'frog'], VO_EM = ['joy', 'sad', 'ang', 'sur', 'fear'];
+function voMatch(t) { if (!t) return 0; const lo = t.toLowerCase();
+  const ri = D.riddles.findIndex(r => r.t === t.trim()); if (ri >= 0) return 78 + ri;
+  if (lo.includes('шарды жар')) { const seg = lo.split('шарды жар')[0]; for (const [w, n] of VO_COL) if (seg.endsWith(w + ' ')) return n; }
+  const am = t.match(/(?:^|\s)([А-ЯӘҒҚҢӨҰҮҺІЁ][а-яәғқңөұүһіё]+) тап!/); if (am && VO_ACC[am[1]]) return VO_ACC[am[1]];
+  if (t.includes('Неше үй бар')) return 54; if (t.includes('Неше ағаш бар')) return 55; if (t.includes('Неше машина бар')) return 56;
+  if (typeof ANIM3 !== 'undefined') { const i = VO_AN.findIndex(k => ANIM3[k] && t.includes(ANIM3[k].d)); if (i >= 0 && t.includes('Бұл кім')) return 64 + i; }
+  if (typeof EMO !== 'undefined') { const i = VO_EM.findIndex(k => EMO[k] && t.includes(EMO[k][1])); if (i >= 0) return 71 + i; }
+  if (t.includes('ЕҢ ТЕЗ')) return 76; if (t.includes('ЕҢ БАЯУ')) return 77; return 0; }
+(() => { const gb = document.getElementById('gBody'); if (!gb) return;
+  new MutationObserver(ms => { if (!$('#gm').classList.contains('show')) return; const seen = new Set();
+    ms.forEach(m => { let el = m.target.nodeType === 3 ? m.target.parentElement : m.target; const cand = [el]; m.addedNodes && m.addedNodes.forEach(x => cand.push(x.nodeType === 3 ? x.parentElement : x));
+      cand.forEach(e => { if (!e || seen.has(e)) return; seen.add(e); const t = e.textContent || ''; if (t.length > 260) return; const n = voMatch(t); if (!n) return;
+        const now = Date.now(); if (voKey === n && now - voKeyT < 2500) return; voKey = n; voKeyT = now; vo(n, 'q'); }); }); })
+  .observe(gb, { childList: true, subtree: true, characterData: true }); })();
+(() => { const t = document.getElementById('gTitle'); if (!t) return; const b = document.createElement('button'); b.id = 'voBtn'; b.className = 'voBtn'; b.setAttribute('aria-label', 'Тыңда'); b.innerHTML = '<span>🔊</span><b>Тыңда</b>';
+  b.onclick = () => { const n = voGame(); if (!n) return; voStop(); const k = voKey && Date.now() - voKeyT < 600000 ? voKey : 0; vo(n, 'now'); if (k) voQ.push(k); }; t.after(b); })();
+{ const _o = openGame; openGame = function (id) { voStop(); voHold = true; voKey = ''; _o(id); const n = voGame(); const b = voBtnEl(); if (b) b.style.display = n ? '' : 'none';
+  setTimeout(() => { voHold = false; if (n) vo(n, 'now'); else if (voQ.length) voStart(voQ.shift()); }, 450); }; }
+{ const _r = restartGame; restartGame = function () { voStop(); voHold = true; voKey = ''; _r(); const n = voGame(); setTimeout(() => { voHold = false; if (n) vo(n, 'now'); else if (voQ.length) voStart(voQ.shift()); }, 350); }; }
 { const _c = closeGame; closeGame = function () { voStop(); _c(); }; }
-{ const _s = snd; snd = function (k) { _s(k); if (!$('#gm') || !$('#gm').classList.contains('show')) return; const busy = voA && !voA.paused && !voA.ended;
-  if (k === 'win') { setTimeout(() => vo(7), 650); return; }
-  if (busy && Date.now() - voLast < 4000) return; if (Date.now() - voLast < 2200) return;
-  if (k === 'ok') vo(1 + (Math.random() * 4 | 0)); else if (k === 'bad') vo(5 + (Math.random() * 2 | 0)); }; }
+{ const _s = snd; snd = function (k) { _s(k); if (!$('#gm') || !$('#gm').classList.contains('show')) return;
+  if (k === 'win') { voQ = []; setTimeout(() => vo(7, 'now'), 650); return; }
+  if (Date.now() - voLast < 2200) return;
+  if (k === 'ok') vo(1 + (Math.random() * 4 | 0), 'soft'); else if (k === 'bad') vo(5 + (Math.random() * 2 | 0), 'soft'); }; }
 
 </script>
 </body>
