@@ -1059,7 +1059,7 @@ function make3D(host, opts = {}) {
     { const cur = anims; anims = []; const keep = cur.filter(a => a(t) !== false); anims = keep.concat(anims); } renderer.render(scene, cam); requestAnimationFrame(loop); })(t0);
   const mat = c => LQ ? new T.MeshStandardMaterial({ color: lin(T, c), roughness: .38, metalness: 0 }) : opts.vivid ? new T.MeshPhysicalMaterial({ color: lin(T, c), roughness: .32, metalness: 0, clearcoat: 1, clearcoatRoughness: .06, envMapIntensity: .32 }) : new T.MeshPhysicalMaterial({ color: lin(T, c), roughness: .3, metalness: 0, clearcoat: .7, clearcoatRoughness: .22, envMapIntensity: .9 });
   const mesh = (geo, c, pos = [0, 0, 0]) => { const m = new T.Mesh(geo, mat(c)); m.position.set(...pos); m.castShadow = true; m.receiveShadow = true; return m; };
-  const S = { T, scene, cam, world, mesh, mat, setPick: p => pick = p, tap: f => onTap = f, anim: f => anims.push(f), host, lin: c => lin(T, c), grass: (rep = 4) => { const t = GRASS.clone(); t.needsUpdate = true; t.repeat.set(rep, rep); return new T.MeshStandardMaterial({ color: 0xffffff, map: t, roughness: .95 }); } }; window._s3 = S;
+  const S = { camBase, lookV, placeCam, T, scene, cam, world, mesh, mat, setPick: p => pick = p, tap: f => onTap = f, anim: f => anims.push(f), host, lin: c => lin(T, c), grass: (rep = 4) => { const t = GRASS.clone(); t.needsUpdate = true; t.repeat.set(rep, rep); return new T.MeshStandardMaterial({ color: 0xffffff, map: t, roughness: .95 }); } }; window._s3 = S;
   if (opts.ground !== false && opts.decor !== false) { const dg = decorate(S, R); dg.position.y = opts.groundY || 0; }
   if (POLx && !LQ) polishScene(S, opts); else if (POLx) polishScene(S, Object.assign({}, opts, { hills: false }));
   return S;
@@ -2174,12 +2174,159 @@ g3Animals = polWrap(g3Animals); g3Changed = polWrap(g3Changed); g3Builder = polW
 g3Bunny = polWrap(g3Bunny); g3Moves = polWrap(g3Moves); g3Runner = polWrap(g3Runner); g3Paint = polWrap(g3Paint); g3Melt = polWrap(g3Melt);
 { const M = { animals3d: g3Animals, changed3d: g3Changed, builder3d: g3Builder, emotions3d: g3Emotions, help3d: g3Help, bunny3d: g3Bunny, moves3d: g3Moves, runner3d: g3Runner, paint3d: g3Paint, melt3d: g3Melt }; GAMES.forEach(g => { if (M[g.id]) g.run = M[g.id]; }); }
 
-const TH3=['evap3d','magnet3d','mix3d','grow3d','melt3d','sink3d','shapes3d','tower3d','paint3d','balloons3d','odd3d','count3d','animals3d','changed3d','builder3d','emotions3d','help3d','bunny3d','moves3d','runner3d','applique','waste','eco'];
+/* ---------- Гүл өсіреміз (3D зерттеу) ---------- */
+const FL_STEPS = [
+  ['soil', '🟤', 'Топырақ сал', '🪴 Гүл егейік! Алдымен құмыраға топырақ сал — қапты бас.'],
+  ['seed', '🌰', 'Тұқым сеп', '🌰 Енді тұқым сеп — ұнаған тұқым пакетін таңда.'],
+  ['rake', '⛏️', 'Қопсыт', '⛏️ Топырақты қопсыт — тырнауышты бас.'],
+  ['water', '💧', 'Су құй', '💧 Енді су құй — суқұйғышты бас.'],
+  ['vit', '🧪', 'Дәрумен сал', '🧪 Гүлге дәрумен сал — шөлмекті бас.'],
+  ['sun', '☀️', 'Күнге қой', '☀️ Енді гүлді күннің көзіне қой — терезені бас.'],
+];
+function flPacketTex(T, col) { const c = document.createElement('canvas'); c.width = 128; c.height = 170; const x = c.getContext('2d');
+  x.fillStyle = '#fffaf0'; x.fillRect(0, 0, 128, 170); x.fillStyle = col; x.fillRect(0, 0, 128, 30); x.fillRect(0, 150, 128, 20);
+  x.strokeStyle = '#3c9a3c'; x.lineWidth = 6; x.beginPath(); x.moveTo(64, 140); x.lineTo(64, 90); x.stroke(); x.fillStyle = '#3c9a3c'; x.beginPath(); x.ellipse(50, 118, 14, 6, -.5, 0, 7); x.fill(); x.beginPath(); x.ellipse(78, 112, 14, 6, .5, 0, 7); x.fill();
+  x.fillStyle = col; for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283; x.beginPath(); x.arc(64 + Math.cos(a) * 18, 72 + Math.sin(a) * 18, 14, 0, 7); x.fill(); } x.fillStyle = '#ffc400'; x.beginPath(); x.arc(64, 72, 12, 0, 7); x.fill();
+  const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t; }
+function g3Flower() {
+  const b = body(); const btns = el('div', { class: 'pal3' }); const dayB = el('button', { class: 'btn3 go', style: 'display:none;font-size:22px;padding:14px 34px' }, '📅 Келесі күн');
+  const U3 = stage3(b); b.append(btns, dayB);
+  const S = make3D(U3.host, { cam: [.3, 2.4, 6.6], look: [.4, .75, -.4], vivid: 1, ground: false, rotate: false }); if (!S) return; const T = S.T;
+  /* --- бөлме --- */
+  S.world.add(S.mesh(rbox(T, 18, .1, 10, .02), 0xe2b47c, [0, -1.47, 1]));
+  for (let i = 0; i < 14; i++) S.world.add(S.mesh(new T.BoxGeometry(18, .005, .015), 0xb98552, [0, -1.415, -3.5 + i * .7]));
+  const WC = 0xffe6d2, wz = -2.35;
+  [[-3.45, 1.6, 9.1, 6.2], [5.65, 1.6, 4.7, 6.2], [2.2, -.26, 2.2, 2.32], [2.2, 3.75, 2.2, 1.7]].forEach(([x, y, w, h]) => S.world.add(S.mesh(new T.BoxGeometry(w, h, .2), WC, [x, y, wz])));
+  S.world.add(S.mesh(new T.BoxGeometry(18, .22, .06), 0xffffff, [0, -1.31, wz + .12]));
+  const sc = document.createElement('canvas'); sc.width = 4; sc.height = 256; const sx = sc.getContext('2d'); const sg = sx.createLinearGradient(0, 0, 0, 256); sg.addColorStop(0, '#3d9bff'); sg.addColorStop(.7, '#bfe6ff'); sg.addColorStop(1, '#e8ffd8'); sx.fillStyle = sg; sx.fillRect(0, 0, 4, 256);
+  const skyT = new T.CanvasTexture(sc); skyT.encoding = T.sRGBEncoding; const sky = new T.Mesh(new T.PlaneGeometry(5, 4), new T.MeshBasicMaterial({ map: skyT })); sky.position.set(2.2, 1.9, -3.2); S.world.add(sky);
+  const hill = new T.Mesh(new T.SphereGeometry(2.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), new T.MeshBasicMaterial({ color: 0x7ccf6b })); hill.scale.set(1, .35, .15); hill.position.set(1.6, .55, -3.15); S.world.add(hill);
+  const sun = new T.Mesh(new T.SphereGeometry(.28, 24, 16), new T.MeshBasicMaterial({ color: 0xffd23f })); sun.position.set(3.0, 2.45, -3.1); S.world.add(sun);
+  const gc = document.createElement('canvas'); gc.width = gc.height = 64; const gx = gc.getContext('2d'); const rg = gx.createRadialGradient(32, 32, 0, 32, 32, 32); rg.addColorStop(0, 'rgba(255,240,170,1)'); rg.addColorStop(1, 'rgba(255,220,120,0)'); gx.fillStyle = rg; gx.fillRect(0, 0, 64, 64);
+  const glowT = new T.CanvasTexture(gc); const sunGlow = new T.Sprite(new T.SpriteMaterial({ map: glowT, transparent: true, depthWrite: false })); sunGlow.position.copy(sun.position); sunGlow.scale.setScalar(1.4); S.world.add(sunGlow);
+  const fr = 0xffffff; [[2.2, 2.9, 2.36, .14], [2.2, .9, 2.36, .14]].forEach(([x, y, w, h]) => S.world.add(S.mesh(rbox(T, w, h, .22, .04), fr, [x, y, wz + .02])));
+  [[1.1, 1.9], [3.3, 1.9]].forEach(([x, y]) => S.world.add(S.mesh(rbox(T, .14, 2.14, .22, .04), fr, [x, y, wz + .02])));
+  S.world.add(S.mesh(rbox(T, .07, 2.0, .1, .02), fr, [2.2, 1.9, wz + .02]), S.mesh(rbox(T, 2.1, .07, .1, .02), fr, [2.2, 1.9, wz + .02]));
+  const glass = new T.Mesh(new T.PlaneGeometry(2.2, 2.0), new T.MeshPhysicalMaterial({ color: 0xdff4ff, transparent: true, opacity: .14, roughness: 0, clearcoat: 1 })); glass.position.set(2.2, 1.9, wz); glass.userData = { id: 'sun' }; S.world.add(glass);
+  const sill = S.mesh(rbox(T, 2.9, .14, .9, .05), 0xffffff, [2.2, .83, -1.92]); S.world.add(S.mesh(rbox(T, 2.7, .1, .12, .03), 0xe6e6e6, [2.2, .72, -1.5])); sill.userData = { id: 'sun' }; S.world.add(sill);
+  [[.72, 1], [3.68, -1]].forEach(([x, s]) => { const cu = new T.Group(); for (let i = 0; i < 4; i++) cu.add(S.mesh(new T.CylinderGeometry(.09, .11, 2.5, 14), i % 2 ? 0xff9eb5 : 0xffb3c6, [i * .14 * s, 0, 0])); cu.position.set(x, 1.85, -2.12); S.world.add(cu); S.world.add(S.mesh(new T.TorusGeometry(.2, .03, 8, 20), 0xffc933, [x + .2 * s, 1.5, -2.0])); });
+  // сол жақ қабырға: сурет пен сөре
+  S.world.add(S.mesh(rbox(T, 1.3, 1.0, .06, .03), 0xffc933, [-2.6, 2.2, wz + .12]), S.mesh(rbox(T, 1.15, .85, .02, .02), 0xbfe9ff, [-2.6, 2.2, wz + .16]));
+  [[-2.85, 2.05, .22, 0x7ccf6b], [-2.45, 2.0, .3, 0x5fbf4a]].forEach(([x, y, r, c]) => { const m = S.mesh(new T.SphereGeometry(r, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), c, [x, y - .15, wz + .17]); m.scale.z = .1; S.world.add(m); });
+  S.world.add(S.mesh(new T.SphereGeometry(.12, 16, 10), 0xffd23f, [-2.25, 2.4, wz + .18]));
+  S.world.add(S.mesh(rbox(T, 1.6, .08, .4, .02), 0xb98552, [-0.4, 2.55, wz + .25]));
+  [0xe8344e, 0x2f9bff, 0xffc933, 0x2fbf71, 0x8a1fd6].forEach((c, i) => S.world.add(S.mesh(rbox(T, .12, .42 - (i % 2) * .06, .3, .02), c, [-1.0 + i * .15, 2.8 - (i % 2) * .03, wz + .25])));
+  /* --- үстел мен құмыра --- */
+  labTable(S, 5.8, 2.6);
+  const P = new T.Group(); const potS = .85; P.scale.setScalar(potS);
+  const pts = [[0, 0], [.42, 0], [.52, .7], [.6, .72], [.6, .84], [.5, .84], [.47, .74]].map(p => new T.Vector2(p[0], p[1]));
+  const potM = S.mesh(new T.LatheGeometry(pts, 48), 0xd9653b); potM.material.side = T.DoubleSide; P.add(potM);
+  P.add(S.mesh(bevCyl(T, .58, .07, .03), 0xc4542f, [0, .02, 0]));
+  for (let i = 0; i < 3; i++) { const d = S.mesh(new T.TorusGeometry(.49, .018, 6, 40), 0xffffff, [0, .3 + i * .09, 0]); d.rotation.x = Math.PI / 2; d.scale.setScalar(.95 + i * .035); P.add(d); }
+  const soilG = new T.CylinderGeometry(.5, .42, .62, 40); soilG.translate(0, .31, 0); const soil = S.mesh(soilG, 0x7a5434, [0, .06, 0]); soil.scale.y = .01; soil.visible = false; P.add(soil);
+  const lumps = new T.Group(); lumps.position.y = .68; lumps.visible = false; P.add(lumps); for (let i = 0; i < 14; i++) { const a = Math.random() * 6.28, r = Math.random() * .4; const l = S.mesh(new T.SphereGeometry(rnd(.035, .06), 8, 6), 0x6b4a2e, [Math.cos(a) * r, 0, Math.sin(a) * r]); l.scale.y = .6; lumps.add(l); }
+  const plant = new T.Group(); plant.position.y = .68; P.add(plant);
+  const POT0 = new T.Vector3(-.3, 0, .1), POT1 = new T.Vector3(2.2, .9, -1.9); P.position.copy(POT0); S.world.add(P);
+  const soilCol = c => soil.material.color.copy(S.lin(c));
+  /* --- құралдар --- */
+  const tools = {};
+  const mkTool = (id, g, pos, rotY = 0) => { g.userData = { id, home: new T.Vector3(...pos), rotY }; g.position.set(...pos); g.rotation.y = rotY; S.world.add(g); tools[id] = g; return g; };
+  { const g = new T.Group(); g.add(sph(S, .42, 0xc9a27a, [0, .5, 0], [1, 1.2, .78])); const n = S.mesh(new T.CylinderGeometry(.2, .3, .25, 20), 0xb88f62, [0, 1.0, 0]); g.add(n); g.add(sph(S, .2, 0x5e3f22, [0, 1.1, 0], [1, .45, 1]));
+    const bnd = S.mesh(new T.TorusGeometry(.22, .03, 8, 24), 0x8d6e4a, [0, .95, 0]); bnd.rotation.x = Math.PI / 2; g.add(bnd); g.add(S.mesh(rbox(T, .4, .3, .02, .02), 0x6b4a2e, [0, .5, .33])); mkTool('soil', g, [-2.2, 0, .2], .3); }
+  const packs = []; [['#ff2d95', 0xff2d95], ['#ffb300', 0xffc400], ['#8a1fd6', 0x9b4dff]].forEach(([cs, c], i) => { const g = new T.Group(); const m = new T.Mesh(rbox(T, .34, .46, .04, .015), [0, 0, 0, 0, 0, 0].map((_, k) => k === 4 ? new T.MeshStandardMaterial({ map: flPacketTex(T, cs), roughness: .6 }) : new T.MeshStandardMaterial({ color: S.lin(0xfffaf0), roughness: .6 }))); m.position.y = .24; m.castShadow = true; g.add(m); g.rotation.x = -.25; const tg = mkTool('seed', g, [-1.45 + i * .4, 0, .85], 0); tg.userData.col = c; packs.push(tg); });
+  { const g = new T.Group(); const h = S.mesh(new T.CylinderGeometry(.035, .035, .8, 10), 0xc68642, [0, 0, 0]); h.rotation.z = Math.PI / 2; g.add(h); g.add(S.mesh(rbox(T, .12, .12, .14, .03), 0x2fbf71, [.43, 0, 0]));
+    for (let i = 0; i < 4; i++) { const t = S.mesh(new T.CylinderGeometry(.015, .01, .22, 6), 0x9aa3ad, [.52, -.05, -.12 + i * .08]); t.rotation.z = -1.2; g.add(t); } g.add(S.mesh(rbox(T, .2, .1, .1, .04), 0x2fbf71, [-.42, 0, 0])); mkTool('rake', g, [.8, .07, .95], .2); }
+  { const g = new T.Group(); g.add(S.mesh(bevCyl(T, .27, .42, .05), 0x2f9bff, [0, .21, 0])); const sp = S.mesh(new T.CylinderGeometry(.03, .055, .62, 12), 0x2f9bff, [.38, .38, 0]); sp.rotation.z = -.9; g.add(sp); const ro = S.mesh(bevCyl(T, .08, .06, .02), 0x7cc4ff, [.62, .56, 0]); ro.rotation.z = -.9; g.add(ro);
+    const hd = S.mesh(new T.TorusGeometry(.17, .035, 10, 24, Math.PI), 0x1f7fe0, [-.04, .42, 0]); g.add(hd); g.add(S.mesh(new T.CylinderGeometry(.24, .24, .03, 30), 0xffffff, [0, .3, 0])); mkTool('water', g, [1.55, 0, .25], -.4); }
+  { const g = new T.Group(); g.add(S.mesh(bevCyl(T, .13, .36, .03), 0x2fbf71, [0, .18, 0]), S.mesh(new T.CylinderGeometry(.06, .1, .08, 16), 0x2fbf71, [0, .4, 0]), S.mesh(bevCyl(T, .07, .08, .015), 0xffffff, [0, .47, 0]), S.mesh(new T.CylinderGeometry(.135, .135, .14, 24), 0xffffff, [0, .18, 0]));
+    const lf = sph(S, .05, 0x2fbf71, [0, .19, .13], [1, .5, .3]); g.add(lf); mkTool('vit', g, [2.35, 0, .65]); }
+  const pickList = () => [...Object.values(tools), ...packs, glass, sill];
+  S.setPick(pickList());
+  // нұсқаушы көрсеткі
+  const arrow = new T.Group(); const ac = S.mesh(new T.ConeGeometry(.13, .28, 20), 0xffc400, [0, 0, 0]); ac.rotation.x = Math.PI; arrow.add(ac, S.mesh(new T.CylinderGeometry(.05, .05, .25, 12), 0xffc400, [0, .25, 0])); arrow.visible = false; S.world.add(arrow);
+  let arrowAt = null; S.anim(() => { if (!U3.host.isConnected) return false; if (arrow.visible && arrowAt) arrow.position.set(arrowAt.x, arrowAt.y + Math.abs(Math.sin(now3() / 220)) * .2, arrowAt.z); });
+  const pointTo = id => { const g = id === 'sun' ? sill : id === 'seed' ? packs[1] : tools[id]; const p = g.position.clone(); p.y += id === 'soil' ? 1.55 : id === 'sun' ? .9 : id === 'seed' ? .8 : id === 'water' ? 1.0 : .75; arrowAt = p; arrow.visible = true; };
+  /* --- бөлшектер --- */
+  const fall = (n, dur, src, col, size, toY, opt = {}) => { for (let i = 0; i < n; i++) setTimeout(() => { if (!U3.host.isConnected) return; const m = opt.mat ? new T.Mesh(new T.SphereGeometry(size, 8, 6), opt.mat) : S.mesh(new T.SphereGeometry(size, 8, 6), col); if (opt.drop) m.scale.y = 1.6; const s0 = src().add(new T.Vector3(rnd(-.06, .06), 0, rnd(-.06, .06))); m.position.copy(s0); S.world.add(m); const tx = P.position.x + rnd(-.3, .3) * potS, tz = P.position.z + rnd(-.3, .3) * potS; const ty = P.position.y + toY * potS;
+    tw(S, 420, q => { m.position.set(s0.x + (tx - s0.x) * q, s0.y + (ty - s0.y) * q * q, s0.z + (tz - s0.z) * q); }, () => S.world.remove(m)); }, Math.random() * dur); };
+  const toolTo = (g, off, tilt, dur, cb) => { const st = g.position.clone(), sr = g.rotation.clone(), en = P.position.clone().add(off);
+    tw(S, 520, q => { const e = ease(q); g.position.lerpVectors(st, en, e); g.position.y += Math.sin(q * Math.PI) * .4; g.rotation.y = sr.y * (1 - e); }, () => tw(S, 300, q => { g.rotation.z = tilt * ease(q); }, () => setTimeout(() => tw(S, 300, q => { g.rotation.z = tilt * (1 - ease(q)); }, () => { const h = g.userData.home; const s2 = g.position.clone(); tw(S, 520, q => { const e = ease(q); g.position.lerpVectors(s2, h, e); g.position.y += Math.sin(q * Math.PI) * .3; g.rotation.y = g.userData.rotY * e; }, cb); }), dur))); };
+  const mouth = (g, o) => () => g.localToWorld(o.clone()).sub(S.world.position);
+  let flowerCol = 0xff2d95;
+  const ACT = {
+    soil: done => { soil.visible = true; const g = tools.soil; toolTo(g, new T.Vector3(.75, .95, 0), 1.25, 1300, done); setTimeout(() => { fall(36, 1200, mouth(g, new T.Vector3(0, 1.15, 0)), 0x6d4c2f, .045, .6); tw(S, 1400, q => soil.scale.y = Math.max(.01, ease(q))); }, 820); },
+    seed: (done, g) => { g = g || packs[1]; flowerCol = g.userData.col; toolTo(g, new T.Vector3(.45, .95, 0), 1.4, 900, done);
+      setTimeout(() => { [[-.15, .1], [.12, -.08], [.05, .18]].forEach(([x, z], i) => setTimeout(() => { const s = sph(S, .05, 0x8d5a34, [x, .9, z], [1, .7, 1.3]); s.material.color.copy(S.lin(0x9b6a3c)); plant.add(s); s.userData.seed = 1; tw(S, 420, q => s.position.y = .9 - .9 * q * q, () => tw(S, 300, q => s.position.y = -.02 * q)); }, i * 220)); }, 900); },
+    rake: done => { const g = tools.rake; const st = g.position.clone(); const top = P.position.clone().add(new T.Vector3(0, .82 * potS + .05, .1)); tw(S, 480, q => { g.position.lerpVectors(st, top, ease(q)); g.rotation.y = .2 * (1 - q); }, () => { lumps.visible = true; plant.children.forEach(c => { if (c.userData.seed) c.visible = false; });
+      tw(S, 1500, q => { g.position.x = top.x + Math.sin(q * 18) * .22; g.position.z = top.z + Math.cos(q * 9) * .1; lumps.children.forEach((l, i) => { l.position.y = Math.abs(Math.sin(q * 20 + i)) * .03; }); if (Math.random() < .3) popFx(S, top.clone().add(new T.Vector3(rnd(-.2, .2), -.05, 0)), 0x6d4c2f); },
+        () => { const s2 = g.position.clone(); tw(S, 480, q => { g.position.lerpVectors(s2, g.userData.home, ease(q)); g.rotation.y = .2 * q; }, done); }); }); },
+    water: done => { const g = tools.water; toolTo(g, new T.Vector3(-.75, .85, 0), -.75, 1500, done);
+      setTimeout(() => { const wm = new T.MeshPhysicalMaterial({ color: S.lin(0x5ec8ff), transparent: true, opacity: .8, roughness: 0, clearcoat: 1 }); fall(40, 1400, mouth(g, new T.Vector3(.64, .56, 0)), 0, .03, .7, { mat: wm, drop: 1 }); const c0 = soil.material.color.clone(), c1 = S.lin(0x4a3220); tw(S, 1500, q => soil.material.color.copy(c0).lerp(c1, q)); }, 830); },
+    vit: done => { const g = tools.vit; toolTo(g, new T.Vector3(.45, .85, 0), 2.2, 1200, done);
+      setTimeout(() => { [0x7cc4ff, 0xffffff, 0x7dff6a].forEach((c, i) => fall(10, 1100, mouth(g, new T.Vector3(0, .5, 0)), c, .028, .69)); setTimeout(() => { for (let i = 0; i < 3; i++) setTimeout(() => popFx(S, P.position.clone().add(new T.Vector3(0, .72 * potS, 0)), 0x7dff6a), i * 200); }, 900); }, 820); },
+    sun: done => { const st = P.position.clone(); tw(S, 1400, q => { const e = ease(q); P.position.lerpVectors(st, POT1, e); P.position.y += Math.sin(q * Math.PI) * .9; P.rotation.y = q * Math.PI * 2; }, () => { lightOn(); done(); }); },
+  };
+  const warm = new T.PointLight(0xffd27a, 0, 5); warm.position.set(2.6, 2.3, -1.6); S.scene.add(warm);
+  const beam = new T.Mesh(new T.ConeGeometry(1.1, 2.6, 32, 1, true), new T.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide, blending: T.AdditiveBlending })); beam.position.set(2.45, 1.9, -1.9); beam.rotation.z = -.35; S.world.add(beam);
+  const camTo = (c, l, d = 1600) => { const c0 = S.camBase.clone(), l0 = S.lookV.clone(), c1 = new T.Vector3(...c), l1 = new T.Vector3(...l); tw(S, d, q => { const e = ease(q); S.camBase.lerpVectors(c0, c1, e); S.lookV.lerpVectors(l0, l1, e); S.placeCam(); }); };
+  function lightOn() { camTo([1.4, 2.0, 2.4], [2.2, 1.45, -2.0]); tw(S, 900, q => { warm.intensity = q * 1.4; beam.material.opacity = q * .07; sunGlow.scale.setScalar(1.4 + q * .8); }); }
+  /* --- өсімдік --- */
+  const stemG = new T.CylinderGeometry(.028, .04, 1, 12); stemG.translate(0, .5, 0); const stem = S.mesh(stemG, 0x2e9e4f, [0, 0, 0]); stem.scale.y = .001; plant.add(stem);
+  const leafG = (() => { const sh = new T.Shape(); sh.moveTo(0, 0); sh.quadraticCurveTo(.16, .16, .42, 0); sh.quadraticCurveTo(.16, -.16, 0, 0); const g = new T.ExtrudeGeometry(sh, { depth: .01, bevelEnabled: true, bevelThickness: .01, bevelSize: .01, bevelSegments: 2 }); return g; })();
+  const leaves = []; const addLeaf = (y, a, s) => { const pv = new T.Group(); pv.position.y = y; pv.rotation.y = a; const l = S.mesh(leafG, 0x3cc05a); l.rotation.x = Math.PI / 2 - .9; l.rotation.z = .35; pv.add(l); pv.scale.setScalar(.001); pv.userData.s = s; plant.add(pv); leaves.push(pv); tw(S, 700, q => pv.scale.setScalar(Math.max(.001, ease(q) * s))); return pv; };
+  const head = new T.Group(); plant.add(head); head.visible = false; const petals = [];
+  const bud = new T.Group(); head.add(bud); for (let i = 0; i < 5; i++) { const se = S.mesh(new T.ConeGeometry(.05, .14, 8), 0x2e9e4f); const a = i / 5 * 6.283; se.position.set(Math.cos(a) * .05, .03, Math.sin(a) * .05); se.rotation.set(Math.sin(a) * .6, 0, -Math.cos(a) * .6); bud.add(se); }
+  const center = sph(S, .1, 0xffb300, [0, .07, 0], [1, .55, 1]); center.material.emissive = S.lin(0x6b4a00); head.add(center); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; head.add(sph(S, .018, 0x8a5a00, [Math.cos(a) * .06, .11, Math.sin(a) * .06])); } head.scale.setScalar(1.5);
+  const setStem = (h, d = 900) => { const h0 = stem.scale.y; tw(S, d, q => { stem.scale.y = h0 + (h - h0) * ease(q); head.position.y = stem.scale.y; }); };
+  function buildPetals() { for (let i = 0; i < 10; i++) { const pv = new T.Group(); pv.rotation.y = i / 10 * Math.PI * 2; pv.position.y = .05; const p = S.mesh(new T.SphereGeometry(.16, 20, 12), flowerCol, [0, 0, .15]); p.scale.set(.55, .18, 1); pv.add(p); pv.rotation.x = 0; pv.userData.p = p; pv.rotation.order = 'YXZ'; head.add(pv); petals.push(pv); } }
+  const petalOpen = k => petals.forEach(pv => { pv.rotation.x = -1.25 * (1 - k) - .25 * k; pv.scale.setScalar(.4 + .6 * k); });
+  const droop = (on) => { const a = on ? .5 : 0; const st = plant.rotation.z; tw(S, 700, q => plant.rotation.z = st + (a * .25 - st) * q); leaves.forEach(l => { const s = l.rotation.x; tw(S, 700, q => l.rotation.x = s + ((on ? .6 : 0) - s) * q); }); soilCol(on ? 0xb08a60 : 0x4a3220); };
+  let bfly = null; function butterfly() { const g = new T.Group(); const bd = sph(S, .03, 0x3b2414, [0, 0, 0], [1, 1, 3.2]); g.add(bd); const wm = new T.MeshStandardMaterial({ color: S.lin(0xffa53d), side: T.DoubleSide, roughness: .5 }); const w = [-1, 1].map(s => { const pv = new T.Group(); const m = new T.Mesh(new T.CircleGeometry(.13, 20), wm); m.position.x = s * .12; m.rotation.x = -Math.PI / 2; pv.add(m); const m2 = new T.Mesh(new T.CircleGeometry(.08, 16), wm); m2.position.set(s * .09, 0, .11); m2.rotation.x = -Math.PI / 2; pv.add(m2); g.add(pv); return pv; }); S.world.add(g); bfly = g;
+    S.anim(() => { if (!g.parent) return false; const t = now3() / 1000; const c = P.position.clone().add(new T.Vector3(0, (.68 + stem.scale.y) * potS + .2, 0)); g.position.set(c.x + Math.cos(t * 1.3) * .55, c.y + Math.sin(t * 2.6) * .15, c.z + Math.sin(t * 1.3) * .4); g.rotation.y = -t * 1.3; w[0].rotation.z = Math.sin(t * 22) * .9; w[1].rotation.z = -Math.sin(t * 22) * .9; }); }
+  /* --- ойын барысы --- */
+  let phase = 'prep', k = 0, busy = false, wait = null, day = 0, miss = 0;
+  const TOT = FL_STEPS.length + 6;
+  const DAYS = [
+    { say: '🌱 1-күн: Тұқым өнді! Кішкентай өскін шықты.', act: () => { plant.children.forEach(c => { if (c.userData.seed) c.visible = false; }); lumps.visible = false; setStem(.14); addLeaf(.13, 0, .55); addLeaf(.13, Math.PI, .55); } },
+    { say: '💧 2-күн: Топырақ құрғап қалды! Гүлге су құй — суқұйғышты бас.', need: 'water', pre: () => droop(true), after: '💚 Гүл су ішіп, қайта сергіді!', act: () => { droop(false); setStem(.35); addLeaf(.28, 1.2, .8); } },
+    { say: '🌿 3-күн: Сабағы өсіп, жапырақтары көбейді.', act: () => { setStem(.6); addLeaf(.45, 2.6, .9); addLeaf(.52, -.6, .85); } },
+    { say: '🧪 4-күн: Гүлге күш керек. Дәрумен сал — шөлмекті бас.', need: 'vit', after: '💪 Дәрумен гүлге күш берді!', act: () => { setStem(.8); head.visible = true; head.scale.setScalar(.01); tw(S, 700, q => head.scale.setScalar(Math.max(.01, ease(q) * 1.5))); buildPetals(); petalOpen(0); } },
+    { say: '🌷 5-күн: Бүршік үлкейді. Жақында гүл ашылады!', act: () => { setStem(.92); tw(S, 900, q => petalOpen(q * .25)); } },
+    { say: '🌸 6-күн: Гүл ашылды! Қандай әдемі!', act: () => { tw(S, 1600, q => petalOpen(.25 + .75 * ease(q))); for (let i = 0; i < 4; i++) setTimeout(() => popFx(S, P.position.clone().add(new T.Vector3(0, (.68 + .92) * potS + .1, 0)), flowerCol), 400 + i * 250); butterfly(); setTimeout(quiz, 3000); } },
+  ];
+  function say0() { U3.say(FL_STEPS[k][3]); U3.progress(k / TOT); }
+  function act(id, g) {
+    if (busy || phase === 'quiz' || phase === 'end') return;
+    if (phase === 'prep') { const need = FL_STEPS[k][0];
+      if (id !== need) { snd('bad'); miss++; if (g) shakeObj(S, g); U3.say(tryA() + ' Алдымен: ' + FL_STEPS[k][1] + ' ' + FL_STEPS[k][2].toLowerCase() + '!', 'bad'); pointTo(need); return; }
+      busy = true; arrow.visible = false; snd('ok'); addScore(); U3.say(praise() + ' ' + FL_STEPS[k][1] + ' ' + FL_STEPS[k][2], 'ok'); const bt = btns.querySelector('[data-k="' + id + '"]'); if (bt) { bt.disabled = true; bt.style.opacity = .45; }
+      ACT[id](() => { busy = false; k++; if (k < FL_STEPS.length) { say0(); if (AGE === 0) pointTo(FL_STEPS[k][0]); } else startGrow(); }, g); return; }
+    if (phase === 'grow') { if (wait && id === wait) { busy = true; arrow.visible = false; snd('ok'); addScore(); const d = DAYS[day - 1]; ACT[id](() => { busy = false; wait = null; U3.say(d.after, 'ok'); d.act(); dayB.style.display = ''; btns.innerHTML = ''; }); return; }
+      if (wait) { snd('bad'); if (g) shakeObj(S, g); pointTo(wait); U3.say(tryA() + ' ' + (wait === 'water' ? '💧 Гүлге су керек!' : '🧪 Гүлге дәрумен керек!'), 'bad'); return; }
+      if (g) shakeObj(S, g); U3.say('🙂 Қазір бұл керек емес. «Келесі күн» батырмасын бас.'); }
+  }
+  function startGrow() { phase = 'grow'; btns.innerHTML = ''; S.setPick([tools.water, tools.vit]); U3.progress(FL_STEPS.length / TOT); U3.say('🔬 Енді бақылайық! Гүл қалай өседі? «Келесі күн» батырмасын бас.'); dayB.style.display = ''; }
+  dayB.onclick = () => { if (busy || wait || day >= DAYS.length) return; const d = DAYS[day++]; snd('flip'); U3.progress((FL_STEPS.length + day) / TOT);
+    tw(S, 500, q => { sunGlow.material.opacity = 1 - Math.sin(q * Math.PI) * .7; });
+    if (d.need) { wait = d.need; d.pre && d.pre(); U3.say(d.say); dayB.style.display = 'none'; pointTo(d.need); const n = FL_STEPS.find(s => s[0] === d.need); const bt = el('button', { class: 'blk', style: 'background:linear-gradient(180deg,#5b8dff,#2f5fd0);font-size:20px' }, n[1] + ' ' + n[2]); bt.onclick = () => act(d.need, tools[d.need]); btns.append(bt); }
+    else { U3.say(d.say, 'ok'); d.act(); if (day >= DAYS.length) dayB.style.display = 'none'; } };
+  function quiz() { phase = 'quiz'; dayB.style.display = 'none'; btns.innerHTML = ''; U3.say('🔬 Зерттеу қорытындысы: гүл өсуі үшін не керек болды? Барлығын тап!');
+    const opts = shuffle([['💧', 'Су', 1], ['☀️', 'Күн жарығы', 1], ['🟤', 'Топырақ', 1], ['🧪', 'Дәрумен', 1], ['🍬', 'Кәмпит', 0], ['📱', 'Телефон', 0]]); let got = 0;
+    opts.forEach(([e, l, ok]) => { const bt = el('button', { class: 'blk', style: 'background:linear-gradient(180deg,#ffb74d,#f57c00);font-size:20px' }, e + ' ' + l); bt.onclick = () => { if (bt.disabled) return;
+      if (ok) { bt.disabled = true; bt.style.background = 'linear-gradient(180deg,#5fd07a,#2fa84f)'; got++; snd('ok'); addScore(); U3.say('✅ Иә, гүлге ' + l.toLowerCase() + ' керек!', 'ok'); if (got === 4) { phase = 'end'; setTimeout(() => win('Гүл өсірдің! 🌸 Гүлге топырақ, су, күн жарығы және дәрумен керек.'), 1200); } }
+      else { snd('bad'); shake(bt); U3.say('🙂 Жоқ, гүлге ' + l.toLowerCase() + ' керек емес!', 'bad'); } }; btns.append(bt); }); }
+  shuffle(FL_STEPS.slice()).forEach(([id, e, l]) => { const bt = el('button', { class: 'blk', 'data-k': id, style: 'background:linear-gradient(180deg,#5fd07a,#2fa84f);font-size:20px' }, e + ' ' + l); bt.onclick = () => act(id, id === 'sun' ? sill : id === 'seed' ? null : tools[id]); btns.append(bt); });
+  S.tap(o => { let g = o; while (g && !(g.userData && g.userData.id)) g = g.parent; if (!g) return; act(g.userData.id, g); });
+  say0(); if (AGE === 0) pointTo('soil');
+}
+GAMES.push({ id: 'flower3d', t: 'Гүл өсіреміз', d: 'Топырақ сал, тұқым сеп, қопсыт, су құй, дәрумен бер, күнге қой — гүлдің өсуін бақыла!', emo: '🌸', d3: 1, run: g3Flower });
+
+const TH3=['flower3d','evap3d','magnet3d','mix3d','grow3d','melt3d','sink3d','shapes3d','tower3d','paint3d','balloons3d','odd3d','count3d','animals3d','changed3d','builder3d','emotions3d','help3d','bunny3d','moves3d','runner3d','applique','waste','eco'];
 const CARDS=['help3d','bunny3d','moves3d','runner3d','delightex','monshak','grow3d','melt3d','evap3d','balloons3d','odd3d','count3d','animals3d','changed3d','builder3d','emotions3d','shapes3d','tower3d','paint3d','puzzle','applique','sticker','place','riddle','waste','seasons','magnet3d','sink3d','eco','studio','memory','growth','babies','homes','habitat','mix3d'];
 GAMES.forEach(g=>{if(CARDS.includes(g.id)){g.th='./img/cards/'+g.id+'.webp';delete g.emo;g.contain=false}else if(TH3.includes(g.id)){g.th='./img/g3/'+g.id+'.webp';delete g.emo;g.contain=false}if(g.id==='delightex')delete g.emo});
 AGEF=-1;AGE=2;try{localStorage.removeItem('ba-age')}catch(e){}
 const SECS=[['akyldy','Ақылды ойындар әлемі','img/i1.webp'],['soilei','Сөйлейтін әлем','img/i2.webp'],['kiial','Қиял мен шығармашылық әлемі','img/i3.webp'],['meirim','Мейірім мен достық мекені','img/i4.webp'],['qozgalys','Қозғалыс – денсаулық кепілі','img/i5.webp'],['zertteu','Кішкентай зерттеушілер','img/i9.webp']];
-const META={"shapes3d": [["akyldy"], [0, 1, 2]], "tower3d": [["akyldy"], [0, 1, 2]], "place": [["akyldy", "kiial"], [0, 1, 2]], "seasons": [["akyldy"], [0, 1, 2]], "habitat": [["akyldy"], [0, 1, 2]], "homes": [["akyldy"], [0, 1]], "growth": [["akyldy"], [0, 1, 2]], "memory": [["akyldy"], [0, 1, 2]], "waste": [["akyldy", "meirim"], [1, 2]], "riddle": [["soilei"], [1, 2]], "babies": [["soilei"], [0, 1]], "paint3d": [["kiial"], [0, 1, 2]], "studio": [["kiial"], [0, 1, 2]], "applique": [["kiial"], [0, 1, 2]], "puzzle": [["kiial"], [0, 1, 2]], "sticker": [["kiial"], [0, 1, 2]], "eco": [["meirim"], [1, 2]], "delightex": [["akyldy", "soilei"], [0, 1, 2]], "sink3d": [["zertteu"], [0, 1, 2]], "magnet3d": [["zertteu"], [0, 1, 2]], "mix3d": [["zertteu"], [0, 1, 2]], "grow3d": [["zertteu"], [0, 1, 2]], "melt3d": [["zertteu"], [0, 1, 2]], "evap3d": [["zertteu"], [0, 1, 2]], "monshak": [["akyldy"], [0, 1, 2]], "balloons3d": [["akyldy"], [0, 1, 2]], "odd3d": [["akyldy"], [0, 1, 2]], "count3d": [["akyldy"], [0, 1, 2]], "animals3d": [["soilei"], [0, 1, 2]], "changed3d": [["kiial", "akyldy"], [0, 1, 2]], "builder3d": [["kiial"], [0, 1, 2]], "emotions3d": [["meirim"], [0, 1, 2]], "help3d": [["meirim"], [0, 1, 2]], "bunny3d": [["qozgalys"], [0, 1, 2]], "moves3d": [["qozgalys"], [0, 1, 2]], "runner3d": [["qozgalys"], [0, 1, 2]]};
+const META={"shapes3d": [["akyldy"], [0, 1, 2]], "tower3d": [["akyldy"], [0, 1, 2]], "place": [["akyldy", "kiial"], [0, 1, 2]], "seasons": [["akyldy"], [0, 1, 2]], "habitat": [["akyldy"], [0, 1, 2]], "homes": [["akyldy"], [0, 1]], "growth": [["akyldy"], [0, 1, 2]], "memory": [["akyldy"], [0, 1, 2]], "waste": [["akyldy", "meirim"], [1, 2]], "riddle": [["soilei"], [1, 2]], "babies": [["soilei"], [0, 1]], "paint3d": [["kiial"], [0, 1, 2]], "studio": [["kiial"], [0, 1, 2]], "applique": [["kiial"], [0, 1, 2]], "puzzle": [["kiial"], [0, 1, 2]], "sticker": [["kiial"], [0, 1, 2]], "eco": [["meirim"], [1, 2]], "delightex": [["akyldy", "soilei"], [0, 1, 2]], "sink3d": [["zertteu"], [0, 1, 2]], "magnet3d": [["zertteu"], [0, 1, 2]], "mix3d": [["zertteu"], [0, 1, 2]], "grow3d": [["zertteu"], [0, 1, 2]], "melt3d": [["zertteu"], [0, 1, 2]], "evap3d": [["zertteu"], [0, 1, 2]], "flower3d": [["zertteu"], [0, 1, 2]], "monshak": [["akyldy"], [0, 1, 2]], "balloons3d": [["akyldy"], [0, 1, 2]], "odd3d": [["akyldy"], [0, 1, 2]], "count3d": [["akyldy"], [0, 1, 2]], "animals3d": [["soilei"], [0, 1, 2]], "changed3d": [["kiial", "akyldy"], [0, 1, 2]], "builder3d": [["kiial"], [0, 1, 2]], "emotions3d": [["meirim"], [0, 1, 2]], "help3d": [["meirim"], [0, 1, 2]], "bunny3d": [["qozgalys"], [0, 1, 2]], "moves3d": [["qozgalys"], [0, 1, 2]], "runner3d": [["qozgalys"], [0, 1, 2]]};
 function renderGrid(){const host=$('#gameGrid');host.innerHTML='';
  SECS.forEach(([k,t,ic])=>{const list=GAMES.filter(g=>META[g.id]&&META[g.id][0].includes(k)&&(AGEF<0||META[g.id][1].includes(AGEF))).sort((a,b)=>(b.d3||0)-(a.d3||0));if(!list.length)return;
  const grid=el('div',{class:'games'});
