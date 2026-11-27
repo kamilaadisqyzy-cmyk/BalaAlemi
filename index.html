@@ -191,6 +191,21 @@ form.add .full{grid-column:1/-1}
 .awork{font-weight:800;color:var(--pur);font-size:17px;background:#fff;border-radius:18px;padding:14px 18px;box-shadow:0 6px 18px rgba(80,100,160,.1)}
 .aslogan{font-style:italic;font-weight:800;color:var(--navy);border-left:4px solid var(--gold);padding:4px 0 4px 14px}
 @media(max-width:760px){.auth{grid-template-columns:minmax(0,1fr)}.aph{max-width:340px;margin:0 auto}.aph img{transform:none}}
+.hauth{padding-top:clamp(20px,3vw,40px)}
+.hacard{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:clamp(28px,5vw,70px);align-items:center;background:linear-gradient(135deg,#fffaf0 0%,#fff3d6 55%,#ffe9c2 100%);border:3px solid #fff;border-radius:40px;padding:clamp(24px,4vw,52px);box-shadow:0 12px 0 #efe0b8,0 30px 60px rgba(120,90,30,.16);position:relative;overflow:hidden}
+.hacard::before{content:"";position:absolute;right:-80px;top:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(246,207,106,.45),transparent 70%)}
+.haph{position:relative;justify-self:center;width:min(320px,100%)}
+.haph img{position:relative;display:block;width:100%;aspect-ratio:1;object-fit:cover;object-position:50% 22%;border-radius:50%;border:8px solid #fff;box-shadow:0 18px 40px rgba(90,60,10,.28);z-index:1}
+.haring{position:absolute;inset:-14px;border-radius:50%;border:3px dashed #d9a23a;animation:haspin 40s linear infinite}
+@keyframes haspin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.haring{animation:none}}
+.habadge{position:absolute;z-index:2;left:50%;bottom:-10px;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(180deg,#f6cf6a,#d9a23a);color:#fff;font-weight:900;padding:8px 18px;border-radius:999px;box-shadow:0 5px 0 #b07519,0 10px 20px rgba(0,0,0,.2);text-shadow:0 1px 1px rgba(90,55,0,.4)}
+.hatx{position:relative}.haorn{width:200px;height:auto;display:block;margin-bottom:6px}
+.hakick{margin:0;font-weight:900;color:#b07519;letter-spacing:.04em}
+.haname{font-size:clamp(30px,3.8vw,48px)!important;margin:4px 0 14px!important}
+.hawork{font-weight:800;color:var(--pur);margin:0 0 16px;max-width:60ch}
+.haq{margin:0 0 22px;padding:14px 20px;border-left:5px solid #d9a23a;background:rgba(255,255,255,.7);border-radius:0 18px 18px 0;font-style:italic;font-weight:800;color:var(--navy)}
+@media(max-width:800px){.hacard{grid-template-columns:minmax(0,1fr);text-align:center}.haorn{margin:0 auto 6px}.haph{width:min(240px,80%)}.haq{text-align:left}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:50}
 .toast.show{opacity:1}
 footer{background:linear-gradient(180deg,#1d3a8f,#152a68);color:#fff;position:relative}
@@ -514,6 +529,15 @@ home(){return[`<div class="hero"><div class="txt"><h1 class="ttl">Балдәур
  
  <button class="gbtn" type="submit">${SRCH}Іздеу</button></form></div>`,
 `<div class="zones">${SEC.map(zone).join('')}</div>
+<section class="band hauth"><div class="wrap hacard">
+ <div class="haph"><span class="haring"></span><img src="img/author.webp" alt="Қонысбай Ұлбосын Қонысбайқызы" loading="lazy"><span class="habadge">✍️ Жоба авторы</span></div>
+ <div class="hatx"><svg class="haorn" viewBox="0 0 360 40" aria-hidden="true"><g fill="none" stroke="#d9a23a" stroke-width="3" stroke-linecap="round"><path d="M10 20h120M230 20h120"/><path d="M180 6c-14 0-22 14-12 20 7 4 12-4 8-8M180 6c14 0 22 14 12 20-7 4-12-4-8-8"/><path d="M150 20c8-12 22-10 22 0M210 20c-8-12-22-10-22 0"/><circle cx="180" cy="32" r="3" fill="#d9a23a"/></g></svg>
+ <p class="hakick">Автор туралы</p>
+ <h2 class="haname">Қонысбай Ұлбосын<br>Қонысбайқызы</h2>
+ <p class="hawork">🏫 Қызылорда облысының білім басқармасының Қазалы ауданы бойынша білім бөлімінің №21 «Алпамыс» бөбекжай-балабақшасы КМҚК</p>
+ <blockquote class="haq">«Балдәуреннің цифрлық әлемі – әр баланың қызығушылығын оятып, әр тәрбиешінің шығармашылығына жол ашатын кеңістік!»</blockquote>
+ <a class="gbtn" href="#author">Толығырақ →</a></div>
+</div></section>
 <section class="band"><div class="wrap two"><div><h2>Жобаның мақсаты</h2><p>Жасанды интеллект мүмкіндіктерін тиімді пайдалана отырып, балалардың даму бағыттарына сәйкес авторлық цифрлық-дидактикалық ресурстар қорын құру және оларды балабақшадағы оқу-тәрбие үдерісінде, ата-аналармен ынтымақтастықта қолдану.</p><p class="note">Алғашқы бес бөлім – мектепке дейінгі тәрбиелеу мен оқытудың бес даму бағыты. Қалған үшеуі – бейне, музыка және отбасымен ынтымақтастық.</p> <a class="gbtn" href="#catalog">Барлық материалдар</a> <a class="btn ghost" href="games.html" style="margin-left:6px">🎮 Интерактивті ойындар</a></div><div><h3>Негізгі міндеттер</h3><ol class="steps"><li>Бес даму бағытына сай дидактикалық ойындар әзірлеу</li><li>Ашық сабақтарға ЖИ-бейнематериалдар жинақтау</li><li>Тақырыптық әндер мен әуендер қорын жасау</li><li>Ата-аналарға шақыру, кеңес, отбасылық ойындар</li><li>Тәрбиешілерге қолдану нұсқаулықтарын жүйелеу</li><li>Тәжірибеде қолданып, нәтижесін бақылау</li></ol></div></div></section>`]},
 catalog(){return[`<div class="ph" style="--z1:#fff6dc;--z2:#ffe7a8"><div class="ic"><svg viewBox="0 0 24 24" width="60%" fill="none" stroke="#d9a23a" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div><div>${back('#home','Басты бет')}<h1 style="margin-top:6px">Барлық материалдар</h1><p class="lead">Тақырып және бөлім бойынша іздеңіз</p></div></div>`,`<section class="band"><div class="wrap">${filterUI('c')}</div></section>`]},
 sec(s){const pl=s.id==='auen'?playlist():s.id==='video'?vgrid():s.id==='zertteu'?labIntro():s.id==='natizhe'?results():'';const fam=s.id==='family'?`<div class="sub-grid" style="${zs(s)}">${[['Шақыру әлемі','Жиналыс, мереке, ашық сабаққа шақыру билеттері.'],['Отбасылық ойын уақыты','Үйде баламен ойнауға арналған дамытушы ойындар.'],['Ата-аналарға кеңес','Тәрбие, сөйлеу және танымдық даму бойынша кеңестер.'],['Бірге ойнайық!','Ата-ана мен балаға ортақ тапсырмалар, челлендждер.'],['Отбасылық шығармашылық','Сурет, ертегі, қолөнер және бейне жасау идеялары.']].map(x=>`<div class="sub"><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join('')}</div>`:'';
