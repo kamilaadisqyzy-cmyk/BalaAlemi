@@ -536,6 +536,13 @@ body{background:linear-gradient(180deg,#d6eaff,#fdf8ef 420px)}
 .cur3.on i{transform:none}
 .cur3 b{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:900 34px Nunito,sans-serif;text-shadow:0 3px 10px rgba(0,0,0,.5);opacity:0;transition:opacity .3s}
 .cur3.on b{opacity:1;transition-delay:.5s}
+.voBtn{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;padding:8px 16px 8px 10px;margin-left:10px;background:linear-gradient(180deg,#ffb020,#ff7a00);color:#fff;font:900 16px Nunito,sans-serif;box-shadow:0 4px 0 #c75a00,0 6px 14px rgba(255,122,0,.35);cursor:pointer;vertical-align:middle;animation:voP 2.4s ease-in-out infinite}
+.voBtn span{font-size:24px;line-height:1}
+.voBtn:active{transform:translateY(3px);box-shadow:0 1px 0 #c75a00}
+.voBtn.talk{animation:voT .5s ease-in-out infinite alternate;background:linear-gradient(180deg,#3fd07a,#1aa857);box-shadow:0 4px 0 #0f7a3c}
+@keyframes voP{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes voT{from{transform:scale(1)}to{transform:scale(1.12)}}
+@media(max-width:640px){.voBtn b{display:none}.voBtn{padding:8px 10px;margin-left:6px}}
 </style>
 </head>
 <body>
@@ -2193,6 +2200,22 @@ function restartGame() { setScore(0); memN=[4,6,8][AGE]; seqN=[4,6,8][AGE]; curG
 addEventListener('keydown', e => { if (e.key === 'Escape' && $('#gm').classList.contains('show')) closeGame(); });
 function fromHash(){const h0 = location.hash.slice(1); if (GAMES.some(g => g.id === h0)) openGame(h0);}
 addEventListener('hashchange',fromHash);fromHash();
+
+/* ---------- ДЫБЫСТЫҚ НҰСҚАУЛАР (оқи алмайтын балаларға) ---------- */
+const VO_HAS = new Set(Array.from({ length: 41 }, (_, i) => i + 1));
+const VO_GAME = { shapes3d: 8, balloons3d: 9, odd3d: 10, count3d: 11, tower3d: 12, puzzle: 13, riddle: 14, memory: 15, place: 16, applique: 17, sticker: 18, studio: 19, paint3d: 20, builder3d: 21, waste: 22, eco: 23, seasons: 24, habitat: 25, homes: 26, babies: 27, growth: 28, animals3d: 29, changed3d: 30, emotions3d: 31, help3d: 32, bunny3d: 33, moves3d: 34, runner3d: 35, melt3d: 36, grow3d: 37, magnet3d: 38, sink3d: 39, mix3d: 40, evap3d: 41 };
+let voA = null, voLast = 0;
+function vo(n) { if (!VO_HAS.has(n)) return; try { if (voA) voA.pause(); voA = new Audio('./audio/v/' + String(n).padStart(3, '0') + '.mp3'); voA.play().catch(() => {}); voLast = Date.now(); const b = document.getElementById('voBtn'); if (b) { b.classList.add('talk'); voA.onended = () => b.classList.remove('talk'); } } catch (e) {} }
+function voStop() { try { if (voA) voA.pause(); } catch (e) {} const b = document.getElementById('voBtn'); if (b) b.classList.remove('talk'); }
+const voGame = () => curGame && VO_GAME[curGame.id];
+(() => { const t = document.getElementById('gTitle'); if (!t) return; const b = document.createElement('button'); b.id = 'voBtn'; b.className = 'voBtn'; b.setAttribute('aria-label', 'Тыңда'); b.innerHTML = '<span>🔊</span><b>Тыңда</b>'; b.onclick = () => { const n = voGame(); if (n) vo(n); }; t.after(b); })();
+{ const _o = openGame; openGame = function (id) { _o(id); const n = voGame(); const b = document.getElementById('voBtn'); if (b) b.style.display = n ? '' : 'none'; voStop(); if (n) setTimeout(() => vo(n), 450); }; }
+{ const _r = restartGame; restartGame = function () { _r(); const n = voGame(); voStop(); if (n) setTimeout(() => vo(n), 350); }; }
+{ const _c = closeGame; closeGame = function () { voStop(); _c(); }; }
+{ const _s = snd; snd = function (k) { _s(k); if (!$('#gm') || !$('#gm').classList.contains('show')) return; const busy = voA && !voA.paused && !voA.ended;
+  if (k === 'win') { setTimeout(() => vo(7), 650); return; }
+  if (busy && Date.now() - voLast < 4000) return; if (Date.now() - voLast < 2200) return;
+  if (k === 'ok') vo(1 + (Math.random() * 4 | 0)); else if (k === 'bad') vo(5 + (Math.random() * 2 | 0)); }; }
 
 </script>
 </body>
