@@ -206,6 +206,7 @@ form.add .full{grid-column:1/-1}
 .hawork{font-weight:800;color:var(--pur);margin:0 0 16px;max-width:60ch}
 .haq{margin:0 0 22px;padding:14px 20px;border-left:5px solid #d9a23a;background:rgba(255,255,255,.7);border-radius:0 18px 18px 0;font-style:italic;font-weight:800;color:var(--navy)}
 @media(max-width:800px){.hacard{grid-template-columns:minmax(0,1fr);text-align:center}.haorn{margin:0 auto 6px}.haph{width:min(240px,80%)}.haq{text-align:left}}
+.htop{position:relative;z-index:3;padding-top:clamp(18px,2.5vw,34px)!important;padding-bottom:0!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:50}
 .toast.show{opacity:1}
 footer{background:linear-gradient(180deg,#1d3a8f,#152a68);color:#fff;position:relative}
@@ -528,8 +529,7 @@ home(){return[`<div class="hero"><div class="txt"><h1 class="ttl">Балдәур
  <div class="sel"><select id="hsec" aria-label="Тақырып бойынша"><option value="">Тақырып бойынша</option>${SEC.map(s=>`<option value="${s.id}">${s.t}</option>`).join('')}</select></div>
  
  <button class="gbtn" type="submit">${SRCH}Іздеу</button></form></div>`,
-`<div class="zones">${SEC.map(zone).join('')}</div>
-<section class="band hauth"><div class="wrap hacard">
+`<section class="band hauth htop"><div class="wrap hacard">
  <div class="haph"><span class="haring"></span><img src="img/author.webp" alt="Қонысбай Ұлбосын Қонысбайқызы" loading="lazy"><span class="habadge">✍️ Жоба авторы</span></div>
  <div class="hatx"><svg class="haorn" viewBox="0 0 360 40" aria-hidden="true"><g fill="none" stroke="#d9a23a" stroke-width="3" stroke-linecap="round"><path d="M10 20h120M230 20h120"/><path d="M180 6c-14 0-22 14-12 20 7 4 12-4 8-8M180 6c14 0 22 14 12 20-7 4-12-4-8-8"/><path d="M150 20c8-12 22-10 22 0M210 20c-8-12-22-10-22 0"/><circle cx="180" cy="32" r="3" fill="#d9a23a"/></g></svg>
  <p class="hakick">Автор туралы</p>
@@ -538,6 +538,7 @@ home(){return[`<div class="hero"><div class="txt"><h1 class="ttl">Балдәур
  <blockquote class="haq">«Балдәуреннің цифрлық әлемі – әр баланың қызығушылығын оятып, әр тәрбиешінің шығармашылығына жол ашатын кеңістік!»</blockquote>
  <a class="gbtn" href="#author">Толығырақ →</a></div>
 </div></section>
+<div class="zones">${SEC.map(zone).join('')}</div>
 <section class="band"><div class="wrap two"><div><h2>Жобаның мақсаты</h2><p>Жасанды интеллект мүмкіндіктерін тиімді пайдалана отырып, балалардың даму бағыттарына сәйкес авторлық цифрлық-дидактикалық ресурстар қорын құру және оларды балабақшадағы оқу-тәрбие үдерісінде, ата-аналармен ынтымақтастықта қолдану.</p><p class="note">Алғашқы бес бөлім – мектепке дейінгі тәрбиелеу мен оқытудың бес даму бағыты. Қалған үшеуі – бейне, музыка және отбасымен ынтымақтастық.</p> <a class="gbtn" href="#catalog">Барлық материалдар</a> <a class="btn ghost" href="games.html" style="margin-left:6px">🎮 Интерактивті ойындар</a></div><div><h3>Негізгі міндеттер</h3><ol class="steps"><li>Бес даму бағытына сай дидактикалық ойындар әзірлеу</li><li>Ашық сабақтарға ЖИ-бейнематериалдар жинақтау</li><li>Тақырыптық әндер мен әуендер қорын жасау</li><li>Ата-аналарға шақыру, кеңес, отбасылық ойындар</li><li>Тәрбиешілерге қолдану нұсқаулықтарын жүйелеу</li><li>Тәжірибеде қолданып, нәтижесін бақылау</li></ol></div></div></section>`]},
 catalog(){return[`<div class="ph" style="--z1:#fff6dc;--z2:#ffe7a8"><div class="ic"><svg viewBox="0 0 24 24" width="60%" fill="none" stroke="#d9a23a" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div><div>${back('#home','Басты бет')}<h1 style="margin-top:6px">Барлық материалдар</h1><p class="lead">Тақырып және бөлім бойынша іздеңіз</p></div></div>`,`<section class="band"><div class="wrap">${filterUI('c')}</div></section>`]},
 sec(s){const pl=s.id==='auen'?playlist():s.id==='video'?vgrid():s.id==='zertteu'?labIntro():s.id==='natizhe'?results():'';const fam=s.id==='family'?`<div class="sub-grid" style="${zs(s)}">${[['Шақыру әлемі','Жиналыс, мереке, ашық сабаққа шақыру билеттері.'],['Отбасылық ойын уақыты','Үйде баламен ойнауға арналған дамытушы ойындар.'],['Ата-аналарға кеңес','Тәрбие, сөйлеу және танымдық даму бойынша кеңестер.'],['Бірге ойнайық!','Ата-ана мен балаға ортақ тапсырмалар, челлендждер.'],['Отбасылық шығармашылық','Сурет, ертегі, қолөнер және бейне жасау идеялары.']].map(x=>`<div class="sub"><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join('')}</div>`:'';
