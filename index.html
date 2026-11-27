@@ -171,6 +171,11 @@ form.add .full{grid-column:1/-1}
 .mth.ic img{object-fit:contain;padding:18%;filter:drop-shadow(0 10px 10px rgba(40,60,120,.25))}
 .mth .d3{position:absolute;top:10px;right:10px;background:linear-gradient(180deg,#ffe48a,#f2b632);color:#5a3a00;border-radius:10px;padding:2px 9px;font-weight:900;font-size:13px;box-shadow:0 3px 0 #c98d1e}
 .mth .pl{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--navy);display:grid;place-items:center;font-size:20px;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.tocover{position:fixed;left:16px;bottom:16px;z-index:60;display:flex;align-items:center;gap:6px;height:48px;padding:0 14px 0 8px;border:3px solid #fff;border-radius:999px;background:linear-gradient(180deg,#fff,#eef3fb);color:var(--navy);font:900 14px Nunito,sans-serif;cursor:pointer;box-shadow:0 5px 0 #c7d2e6,0 12px 22px rgba(40,60,120,.22);transition:transform .2s}
+.tocover svg{width:32px;height:32px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))}
+.tocover:hover{transform:translateY(-3px) rotate(-3deg)}.tocover:active{transform:translateY(3px);box-shadow:0 2px 0 #c7d2e6}
+.tocover[hidden]{display:none}
+@media(max-width:600px){.tocover span{display:none}.tocover{padding:0 6px;width:52px;justify-content:center}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:50}
 .toast.show{opacity:1}
 footer{background:linear-gradient(180deg,#1d3a8f,#152a68);color:#fff;position:relative}
@@ -284,10 +289,12 @@ footer a{display:block;text-decoration:none;padding:3px 0;opacity:.92}
  const I=document.getElementById('intro');
  const deep=/^#(m-|s-|catalog|author|metodika|add)/.test(location.hash);
  let seen=false;try{seen=sessionStorage.getItem('ba-intro')==='1'}catch(e){}
- const done=()=>{I.classList.add('gone');document.documentElement.style.overflow='';try{sessionStorage.setItem('ba-intro','1')}catch(e){}setTimeout(()=>{I.style.display='none'},900)};
- const show=()=>{I.style.display='';I.className='';document.documentElement.style.overflow='hidden';setTimeout(()=>I.focus(),50)};
+ const TC=v=>{const b=document.getElementById('toCover');if(b)b.hidden=v};
+ const done=()=>{I.classList.add('gone');TC(false);document.documentElement.style.overflow='';try{sessionStorage.setItem('ba-intro','1')}catch(e){}setTimeout(()=>{I.style.display='none'},900)};
+ const show=()=>{TC(true);I.style.display='';I.className='';document.documentElement.style.overflow='hidden';setTimeout(()=>I.focus(),50)};
  window.openIntro=show;
- if(deep||seen){I.style.display='none'}else show();
+ const want=location.hash==='#cover';if(want){try{history.replaceState(null,'','#home')}catch(e){}}
+ if((deep||seen)&&!want){I.style.display='none';addEventListener('DOMContentLoaded',()=>TC(false))}else show();
  function chime(){try{const C=new (window.AudioContext||window.webkitAudioContext)(),t=C.currentTime;[[72,0],[76,.09],[79,.18],[84,.3]].forEach(([m,d])=>{const o=C.createOscillator(),g=C.createGain();o.type='triangle';o.frequency.value=440*2**((m-69)/12);g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(.12,t+d+.02);g.gain.exponentialRampToValueAtTime(.001,t+d+.6);o.connect(g).connect(C.destination);o.start(t+d);o.stop(t+d+.65)});
   const n=C.createBufferSource(),b=C.createBuffer(1,C.sampleRate*.35,C.sampleRate),dd=b.getChannelData(0);for(let i=0;i<dd.length;i++)dd[i]=(Math.random()*2-1)*Math.pow(1-i/dd.length,2)*.25;n.buffer=b;const f=C.createBiquadFilter();f.type='bandpass';f.frequency.value=1800;n.connect(f).connect(C.destination);n.start(t+.05)}catch(e){}}
  function sparks(){const r=document.getElementById('introBook').getBoundingClientRect();for(let i=0;i<34;i++){const s=document.createElement('i');s.className='spark';const a=Math.random()*Math.PI*2,d=120+Math.random()*260,sz=6+Math.random()*14;s.style.width=s.style.height=sz+'px';s.style.left=(r.left+r.width*.5)+'px';s.style.top=(r.top+r.height*.5)+'px';I.append(s);s.animate([{transform:'translate(-50%,-50%) scale(.2)',opacity:1},{transform:`translate(calc(-50% + ${Math.cos(a)*d}px),calc(-50% + ${Math.sin(a)*d}px)) scale(1)`,opacity:0}],{duration:1100+Math.random()*600,easing:'cubic-bezier(.2,.7,.3,1)',delay:Math.random()*250}).onfinish=()=>s.remove()}}
@@ -322,6 +329,7 @@ footer a{display:block;text-decoration:none;padding:3px 0;opacity:.92}
   <div><h3>Бөлімдер</h3><div id="fsec"></div></div>
   <div><h3>Сайт иесіне</h3><a href="games.html">Интерактивті ойындар</a><a href="#catalog">Барлық материалдар</a><a href="#add">Материал қосу</a><a href="#metodika">Қолдану қағидалары</a><a href="#home" onclick="openIntro&&openIntro();return false">📖 Кітап мұқабасын ашу</a><p class="full-title">Балалардың жеке деректері мен фотосуреттері ата-ананың келісімінсіз жарияланбайды.</p></div>
 </div></footer>
+<button id="toCover" class="tocover" type="button" hidden onclick="openIntro()" aria-label="Кітап мұқабасына оралу" title="Кітап мұқабасына оралу"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="5" width="24" height="30" rx="3" fill="#1d3a8f"/><rect x="9" y="5" width="5" height="30" rx="2" fill="#132a6b"/><rect x="16.5" y="9" width="13" height="22" rx="2" fill="none" stroke="#f6cf6a" stroke-width="1.6"/><path d="M23 13.5l1.5 3 3.2.4-2.4 2.2.7 3.2-3-1.6-2.9 1.6.6-3.2-2.3-2.2 3.2-.4z" fill="#f6cf6a"/><path d="M27 35v4l2-1.4 2 1.4v-4" fill="#e53935"/></svg><span>Мұқаба</span></button>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
